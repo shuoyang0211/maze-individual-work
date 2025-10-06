@@ -1,0 +1,33 @@
+###
+# Default format of the Maze Config. All keys are shown here with their default values. If a value
+# is omitted in a config, it is replaced by its default value.
+##
+
+agent:
+    name: "Agent"
+    speed: 5.0
+    position: [0, 0]
+    policy_hz: 60.0
+    odometry_stddev: 0.0
+    range_stddev: 0.0
+
+flags:
+    # Add positions here in the form [x, y], by default this is an empty list
+    positions: []
+
+capture_points:
+    # Add positions here in the form [x, y], by default this is an empty list
+    positions: []
+
+maze_generation:
+    seed: null
+    width: 100
+    height: 100
+    cell_size: 5.0
+
+camera:
+    scale: -0.15
+
+debug: false
+headless: false
+seed: 0

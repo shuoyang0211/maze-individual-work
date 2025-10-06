@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maze-individual-stencil"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["pynput>=1.8.1"]
+
+[project.scripts]
+maze = "maze.__main__:main"
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+maze-core = { index = "course" } # hyphen (PEP 503 normalized)
+
+[[tool.uv.index]]
+name = "course"
+url = "https://harvard-cs182-f25.github.io/maze/wheels/"
+format = "simple"
+explicit = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
