@@ -1,21 +1,41 @@
 from argparse import ArgumentParser
+from enum import StrEnum
 
-from maze.agents import TeleopAgent
+from maze.agents import TeleopAgent, LocalizationAgent, MappingAgent
 from maze_core import run, parse_config
+
+class AgentId(StrEnum):
+    TELEOP = "teleop"
+    LOCALIZATION = "localization"
+    MAPPING = "mapping"
+
+ID_TO_AGENT = {
+    AgentId.TELEOP: TeleopAgent,
+    AgentId.LOCALIZATION: LocalizationAgent,
+    AgentId.MAPPING: MappingAgent,
+}
+
 
 def main():
     parser = ArgumentParser()
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/teleop.yaml",
+        default="configs/default.yaml",
         help="Path to the config file.",
+    )
+    parser.add_argument(
+        "--agent",
+        type=AgentId,
+        choices=list(AgentId),
+        default=AgentId.TELEOP,
+        help="Which agent to use.",
     )
 
     args = parser.parse_args()
 
     config = parse_config(args.config)
-    run(config=config, policy=TeleopAgent())
+    run(config=config, policy=ID_TO_AGENT[args.agent]())
 
 if __name__ == "__main__":
     main()

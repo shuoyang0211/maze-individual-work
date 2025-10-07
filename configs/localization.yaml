@@ -1,9 +1,9 @@
 agent:
     name: "Agent"
-    speed: 5.0
+    speed: 10.0
     position: [-5, 5]
     policy_hz: 60.0
-    odometry_stddev: 1.0
+    odometry_stddev: 2.0
     range_stddev: 0.0
     occupancy_grid_cell_size: 1.0
 
@@ -22,5 +22,5 @@ maze_generation:
 camera:
     scale: -0.15
 
-debug: true
+debug: false
 headless: false
