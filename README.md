@@ -53,7 +53,11 @@ Please feel free to create copies and modify these files as you work through the
 
 ## Tasks
 
-There are **two total tasks** in this assignment:
+For the individual portion of this assignment, we’ll once again be playing Capture the Flag, but this time with a focus on _perception and estimation_. By the end of this assignment, you should have an agent that is able to both map its environment and localize itself within that map. 
+
+The first task will focus on Mapping, where your agent will use simulated range measurements to incrementally build a 2D occupancy grid representing the world.  
+The second task will focus on Localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter. These components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
+
 
 ### Task 1: Mapping
 
@@ -218,3 +222,4 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
+
