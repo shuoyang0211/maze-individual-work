@@ -56,8 +56,16 @@ Please feel free to create copies and modify these files as you work through the
 For the individual portion of this assignment, we’ll once again be playing Capture the Flag, but this time with a focus on _perception and estimation_. By the end of this assignment, you should have an agent that is able to both map its environment and localize itself within that map. 
 
 The first task will focus on Mapping, where your agent will use simulated range measurements to incrementally build a 2D occupancy grid representing the world.  
-The second task will focus on Localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter. These components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
+The second task will focus on Localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter.
 
+Together, these components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
+
+
+### Task 1: Mapping
+
+In `src/maze/agents/mapping_agent.py`, you will implement an agent that constructs a map of the environment by updating an occupancy grid using simulated sensor readings. Use the raycasts provided by the `GameState` to update the passed-in `OccupancyGrid` within the `get_action` method. Each grid cell should keep track of its _log-odds_ of being occupied.
+
+After sufficient exploration, your occupancy grid should closely resemble the ground truth map.
 
 ### Task 1: Mapping
 
@@ -67,17 +75,48 @@ After sufficient exploration, your occupancy grid should closely resemble the gr
 
 #### Implementation Steps
 
-?
+Let's begin by taking a look at mapping. Mapping is the process of building a representation of the environment from range-based observations. In this assignment, the environment provides simulated _raycasts_ that report the distance to the nearest obstacle in several directions around the agent. Your goal is to use these readings to update a two-dimensional _occupancy grid_, where each cell maintains a log-odds estimate of being occupied.
+
+When a ray detects a hit, increase the log-odds of the corresponding cell (making it more likely to be occupied). For all cells that the ray passes through before the hit, decrease their log-odds (marking them as free). Over time, repeated updates will allow your agent to construct an accurate map of explored regions.
+
+Here’s the procedure at a high level:
+- For each raycast:
+  - Compute the cells along the ray using the agent’s current position and the ray’s angle.
+  - For each cell along the ray:
+    - If the cell is before the hit point, reduce its log-odds (free space).
+    - If the cell corresponds to the hit, increase its log-odds (occupied).
+
+Once you’ve implemented this logic:
+- In `src/maze/agents/mapping_agent.py`, modify the `get_action` method to:
+  - Call `super().get_action()` to inherit basic movement behavior.
+  - Access the `GameState`'s raycast data.
+  - Update the provided `OccupancyGrid` object with the new log-odds values.
+- After sufficient exploration, verify that your occupancy grid visually approximates the ground truth map.
 
 
 ### Task 2: Localization
 
-In `src/maze/agents/localization_agent.py`, you will implement a 2D Kalman Filter that continuously estimates the agent’s position (and optionally velocity) in the arena using noisy motion and noisy observations. The estimator should maintain a compact state and an associated uncertainty, predict the state forward using a simple motion model, and correct the estimate when new measurements arrive from the environment.
+In `src/maze/agents/localization_agent.py`, you will implement a 2D Kalman Filter that continuously estimates the agent’s position in the arena using noisy motion and noisy observations. The estimator should maintain both an estimate of the agent’s current state and the uncertainty associated with that estimate. Your filter will use the transition mode (motion) and the sensor model (observation) introduced in lecture to recursively update its belief over time.
 
 #### Implementation Steps
 
-?
+Localization is the process of determining where the agent is within the world based on imperfect motion and sensor data. In this task, you’ll implement a Kalman Filter where at each timestep, your estimator should perform two stages:
 
+1. **Prediction:**  
+   - Use the agent’s previous state and control input to predict the new position.  
+   - Propagate the uncertainty forward according to the transition model.  
+   - Add process noise to account for uncertainty in the motion dynamics.
+
+2. **Correction:**  
+   - When a new noisy position measurement is received from the environment (`game_state.agent.position`), use the sensor model to relate the measurement to the predicted state.  
+   - Compute the Kalman gain to determine how much to trust the new measurement relative to the prediction.  
+   - Update both the estimated state and covariance to refine the belief.
+
+Once implemented:
+- In `src/maze/agents/localization_agent.py`, complete the `get_action` method to:
+  - Perform the prediction and correction steps on each call.  
+  - Maintain and update the agent’s internal position estimate over time.  
+- When visualized, your estimated trajectory should closely follow the agent’s true path, despite the noise present in both the motion and measurements.
 
 
 ## Installation
@@ -116,7 +155,7 @@ uv sync
 
 This should install an appropriate Python version (3.13) and all the project's dependencies including `pytest`.
 
-#### Installing the Maze Environment (Engine)
+#### Installing the Maze Environment (Engine) - Rust
 _? needed or not_
 
 ### Selecting your Python Interpreter
@@ -222,4 +261,3 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
-
