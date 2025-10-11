@@ -60,13 +60,6 @@ The second task will focus on Localization, where your agent will maintain an es
 
 Together, these components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
 
-
-### Task 1: Mapping
-
-In `src/maze/agents/mapping_agent.py`, you will implement an agent that constructs a map of the environment by updating an occupancy grid using simulated sensor readings. Use the raycasts provided by the `GameState` to update the passed-in `OccupancyGrid` within the `get_action` method. Each grid cell should keep track of its _log-odds_ of being occupied.
-
-After sufficient exploration, your occupancy grid should closely resemble the ground truth map.
-
 ### Task 1: Mapping
 
 In `src/maze/agents/mapping_agent.py`, you will implement an agent that constructs a map of the environment by updating an occupancy grid using simulated sensor readings. Use the raycasts provided by the `GameState` to update the passed-in `OccupancyGrid` within the `get_action` method. Each grid cell should keep track of its _log-odds_ of being occupied.
@@ -261,3 +254,4 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
+
