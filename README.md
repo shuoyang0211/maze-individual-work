@@ -27,6 +27,10 @@ Each time step, the agent receives a `GameState` that provides:
 
 You will maintain an _occupancy grid_, where each cell stores a _log-odds probability_ of being occupied. Over time, your agent should refine this grid into an accurate map of explored areas.
 
+<div align="center">
+    <img src="docs/maze.png" alt="world" width="500"/>
+
+</div>
 
 ## Code Structure
 
@@ -254,4 +258,5 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
+
 
