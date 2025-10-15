@@ -164,7 +164,7 @@ Using typed Python can highly improve your programming (and especially your debu
 -   Set the mode to your desired level of strictness (`standard` is a good default!)
 
 <div align="center">
-    <img src="docs/imgs/type_checking.png" width="1000"/>
+    <img src="docs/type_checking.png" width="1000"/>
 </div>
 
 To ensure that all the type stubs are resolved for your installed dependencies, you have to select the correct Python interpreter. To do so:
@@ -174,22 +174,27 @@ To ensure that all the type stubs are resolved for your installed dependencies, 
 -   Choose the virtual environment located in the stencil directory.
 
 <div align="center">
-    <img src="docs/imgs/interpreter_selection.png" width="1000"/>
+    <img src="docs/interpreter_selection.png" width="1000"/>
 </div>
 
 For this to be correctly detected, be sure that the opened folder in VSCode is your cloned Github repository!
 
 #### Running the Maze Agents
 
-To run the starter code use:
+To launch and interact with any of the Maze agents, use:
 
 ```
 uv run python -m maze [--help] [--config CONFIG] [--agent AGENT_ID]
 ```
 
 > [!NOTE]
-> Items surrounded in `[]` are optional arguments while those in `<>` are required.  
+> Items surrounded in `[]` are optional arguments.
 > `--agent` can be one of `teleop`, `mapping`, or `localization`.
+> The simulation will open a window showing the maze, agent, and flags.
+> 
+1. The TeleopAgent allows you to control the red agent manually to explore the maze, pick up the flag, and drop it at the capture point.
+2. The MappingAgent builds an internal map of the maze using simulated raycast data. It updates an occupancy grid as the agent moves through the environment.
+3. The LocalizationAgent estimates the agent’s position in the maze using noisy motion and sensor data through a 2D Kalman Filter.
 
 Some helpful commands:
 
@@ -258,5 +263,3 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
-
-
