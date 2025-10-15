@@ -152,9 +152,6 @@ uv sync
 
 This should install an appropriate Python version (3.13) and all the project's dependencies including `pytest`.
 
-#### Installing the Maze Environment (Engine) - Rust
-_? needed or not_
-
 ### Selecting your Python Interpreter
 
 Using typed Python can highly improve your programming (and especially your debugging experience). To enable type checking in VSCode:
@@ -263,3 +260,4 @@ pytest --lf -s -vv
 # Redirecting output to a file for readability
 pytest -s > foo.txt
 ```
+
