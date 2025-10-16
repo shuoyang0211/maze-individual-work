@@ -8,10 +8,10 @@ agent:
     occupancy_grid_cell_size: 1.0
 
 flags:
-    positions: [[-5, 10]]
+    number: 1
 
 capture_points:
-    positions: [[-5, -10]]
+    number: 1
 
 maze_generation:
     seed: 0
@@ -24,3 +24,4 @@ camera:
 
 debug: false
 headless: false
+use_true_map: false

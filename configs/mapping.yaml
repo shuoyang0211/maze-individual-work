@@ -4,7 +4,7 @@ agent:
     position: [-5, 5]
     policy_hz: 60.0
     odometry_stddev: 0.0
-    range_stddev: 2.0
+    range_stddev: 1.0
     occupancy_grid_cell_size: 1.0
 
 flags:

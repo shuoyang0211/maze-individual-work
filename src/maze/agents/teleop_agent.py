@@ -35,6 +35,9 @@ class TeleopAgent:
             self.pressed[move] = False
 
     def _map_key(self, key) -> Optional[str]:
+        if key == keyboard.Key.space:
+            return "space"
+
         if isinstance(key, keyboard.KeyCode) and key.char:
             ch = key.char.lower()
             if ch == "w":
@@ -45,6 +48,7 @@ class TeleopAgent:
                 return "left"
             if ch == "d":
                 return "right"
+
 
         return None
 
