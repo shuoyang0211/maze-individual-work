@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from enum import StrEnum
+from importlib.metadata import version
 
 from maze.agents import TeleopAgent, LocalizationAgent, MappingAgent
 from maze_core import run, parse_config
@@ -35,6 +36,8 @@ def main():
     args = parser.parse_args()
 
     config = parse_config(args.config)
+    print(f"Using maze_core version: {version("maze_core")}")
+    print(f"Running {args.agent.value.upper()} agent with config: {args.config}")
     run(config=config, policy=ID_TO_AGENT[args.agent]())
 
 if __name__ == "__main__":
