@@ -3,15 +3,15 @@ agent:
     speed: 10.0
     position: [-5, 5]
     policy_hz: 60.0
-    odometry_stddev: 5.0
+    odometry_stddev: 25.0
     range_stddev: 0.0
     occupancy_grid_cell_size: 1.0
 
 flags:
-    positions: [[-5, 10]]
+    number: 1
 
 capture_points:
-    positions: [[-5, -10]]
+    number: 1
 
 maze_generation:
     seed: 0
@@ -24,3 +24,4 @@ camera:
 
 debug: false
 headless: false
+use_true_map: true

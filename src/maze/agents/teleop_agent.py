@@ -1,8 +1,7 @@
 from pynput import keyboard
 from typing import Optional
 
-from maze_core import Action, GameState, OccupancyGrid, EntityType
-
+from maze_core import Action, GameState, OccupancyGrid
 
 class TeleopAgent:
     """

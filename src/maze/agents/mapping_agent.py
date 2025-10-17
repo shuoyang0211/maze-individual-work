@@ -1,4 +1,4 @@
-from maze_core import Action, GameState, OccupancyGrid, OccupancyGridEntry, SensorConfidence
+from maze_core import Action, GameState, OccupancyGrid, OccupancyGridEntry, Position, SensorConfidence
 
 def update_occupancy_grid_entry(cell: OccupancyGridEntry, confidence: SensorConfidence):
     """
@@ -22,6 +22,10 @@ class MappingAgent:
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def position(self) -> Position:
+        raise NotImplementedError
 
     def update_occupancy_grid(self, game_state: GameState, occupancy_grid: OccupancyGrid):
         raise NotImplementedError
