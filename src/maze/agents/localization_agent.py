@@ -16,5 +16,5 @@ class LocalizationAgent:
     def position(self) -> Position:
         raise NotImplementedError
 
-    def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid) -> Action:
+    def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid, dt: float) -> Action:
         raise NotImplementedError

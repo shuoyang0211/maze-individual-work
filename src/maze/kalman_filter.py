@@ -4,10 +4,11 @@ import numpy as np
 class KalmanFilter2D:
     """
     Constant-velocity 2D Kalman Filter.
-    The internal state is represented as a column vector containing the 2D position and velocity: [x, y, vx, vy]^T
+    The internal state is represented as a column vector containing the 2D position: [x, y]^T
     The initial covariances are large (1e4) until initialized.
 
-    The process model assumes constant velocity, with process noise representing acceleration uncertainty.
+    The process model assumes constant velocity, with process noise representing acceleration uncertainty. Furthermore,
+    assume that the position noise in each axis is independent.
 
     Parameters:
         - process_noise_stddev: Standard deviation of the acceleration noise (affects the process noise covariance Q
@@ -49,6 +50,10 @@ class KalmanFilter2D:
     def predict(self, dt: float, control_input: Velocity):
         """
         Predict the next state and covariance given the time step and the control input (velocity).
+        Note that the process noise is applied here and corresponds to acceleration uncertainty.
+        Since we assume that the noise in each axis is independent, the process noise covariance matrix Q is diagonal.
+        Furthermore, the variance in position grows with dt^4/4 (due to double integration of acceleration)
+
         Parameters:
             - dt: Time step in seconds.
         """

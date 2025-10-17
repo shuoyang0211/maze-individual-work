@@ -1,7 +1,6 @@
 agent:
     name: "Agent"
     speed: 10.0
-    position: [-5, 5]
     policy_hz: 60.0
     odometry_stddev: 25.0
     range_stddev: 0.0

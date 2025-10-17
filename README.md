@@ -12,23 +12,22 @@ In the individual and group assignments, you will once again be playing Capture 
 
 The goal of this assignment is to give your agent the ability to:
 
--   Build and maintain map of the world through ray-based observations, and
+-   Build and maintain a map of the world through ray-based observations, and
 -   Estimate its own position within that map using a simple Kalman Filter.
 
 ### World Structure
 
-The world remains a rectangular arena enclosed by walls with capture points and flags. The environment exposes limited information through _raycasts_ that simulate a range sensor (think LIDAR).
+The world remains a rectangular arena enclosed by walls with capture points and flags. The environment exposes limited information through _raycasts_ that simulate a range sensor (think LIDAR). These are raycasts are equally spaced around the agent moving clockwise from the +x axis (pointing to the right of the screen). Just like assignment 2, the origin is placed in the center of the world with +x pointing to the right of the screen and +y pointing down.
 
-Each time step, the agent receives a `GameState` that provides:
+At each time step, the agent receives a `GameState` that provides:
 
 -   Noisy ray-based distance measurements to nearby objects,
 -   Its noisy current position and velocity estimates,
 
-You will maintain an _occupancy grid_, where each cell stores a logit of being occupied. Over time, your agent should refine this grid into an accurate map of explored areas.
+You will maintain an _occupancy grid_, where each cell stores a logit of being occupied. Over time, your agent should refine this grid into an accurate map of explored areas. The occupancy grid is a discrete 2D array that is can be indexed by `(col_index, row_index)` where `0 <= col_index < width` and `0 <= row_index < height`. The cell at `(0, 0)` is in the upper left corner.
 
 <div align="center">
     <img src="docs/maze.png" alt="world" width="500"/>
-
 </div>
 
 ## Code Structure
@@ -52,15 +51,15 @@ Configuration files define parameters such as which agent to run, number of rays
 -   `configs/mapping.yaml`
 -   `configs/localization.yaml`
 
-Please feel free to create copies and modify these files as you work through the assignment to make sure things are working as expected!
+Please feel free to create copies and modify these files as you work through the assignment to make sure things are working as expected! In particular, you may want to change the seed to generate a new maze or play around with the noise standard deviations!
 
 ## Tasks
 
-For the individual portion of this assignment, we'll be tackling SLAM by looking at its two constituent parts seperatetly: the localization problem and the mapping problem. By the end of this assignment, you should have agents that are able to both map their environment and localize themselves within that map.
+For the individual portion of this assignment, we'll be tackling SLAM by looking at its two constituent parts separately: the localization problem and the mapping problem. By the end of this assignment, you should have agents that are individually able to map their environment and localize themselves within that map.
 
 The first task will focus on mapping, where your agent will use simulated range measurements to incrementally build a 2D occupancy grid representing the world.
 
-The second task will focus on localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter.
+The second task will focus on localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter (found in `src/maze/kalman_filter.py`).
 
 Together, these components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
 
@@ -68,7 +67,7 @@ Together, these components form the foundation for autonomous perception to enab
 
 In `src/maze/agents/mapping_agent.py`, you will implement an agent that constructs a map of the environment by updating an occupancy grid using simulated sensor readings. Use the raycasts provided by the `GameState` to update the passed-in `OccupancyGrid` within the `get_action` method. Each grid cell should keep track of a logit corresponding to which class the cell is supposed to represent.
 
-After sufficient exploration, your occupancy grid should closely resemble the ground truth map. You can toggle your occupancy grid and the true occupancy grid on and off using the `O` and `T` keys on your keyboard.
+After sufficient exploration, your occupancy grid should somewhat resemble the ground truth map. You can toggle your occupancy grid and the true occupancy grid on and off using the `O` and `T` keys on your keyboard. Hovering over these grids will give you debug information about hovered cell.
 
 #### Implementation Steps
 
@@ -87,15 +86,17 @@ Here’s the procedure at a high level:
         -   If the cell is before the hit point, modify the logits so that the flag is more likely
         -   If the cell corresponds to the hit, modify the logits so that the entity type of the ray hit is more likely
 
-Once you've implemented this logic move your agent around to explore the map! Think back to some of the earlier search strategies we've seen in the course to attempt to explore and map the maze. We'll be verifying that the error between your occupancy grid and the the true occupancy grid is not too large after a sufficient amount of time.
+Once you've implemented this logic move your agent around to explore the map! Think back to some of the earlier search strategies we've seen in the course to attempt to explore and map the maze. We'll be verifying that the error between your occupancy grid and the true occupancy grid is not too large after a sufficient amount of time.
 
-> [!NOTE]
+You should aim to have an autonomous agent explore a randomly generated maze and reach a mapping error of under 40% in 5 minutes.
+
+> [!TIP]
 > When you're getting started, it may help to have manual control of your mapping agent to debug how you're filling the occupancy grid.
 > To do so, you can have the `MappingAgent` subclass the `TeleopAgent` and make sure to return the output of `super().get_action(...)` in the implementation of `MappingAgent`'s `get_action` method.
 
 ### Task 2: Localization
 
-In `src/maze/agents/localization_agent.py`, you will implement a 2D Kalman Filter that continuously estimates the agent’s position in the arena using noisy motion and noisy observations. The estimator should maintain both an estimate of the agent’s current state and the uncertainty associated with that estimate. Your filter will use the transition mode (motion) and the sensor model (observation) introduced in lecture to recursively update its belief over time.
+In `src/maze/agents/localization_agent.py`, you will implement a 2D Kalman Filter that continuously estimates the agent’s position in the arena using noisy observations from a simulated inertial measurement unit (IMU). The IMU provides you with a noisy position estimate of the agent's current location in the world. You may assume that this noise is zero-mean additive Gaussian noise with a known standard deviation (provided in `GameState`). We'll furthermore, make the simplifying assumption that the noise in each axis is uncorrelated (this is a strong assumption to make. why?).
 
 #### Implementation Steps
 
@@ -117,7 +118,18 @@ Once implemented:
 -   In `src/maze/agents/localization_agent.py`, complete the `get_action` method to:
     -   Perform the prediction and correction steps on each call.
     -   Maintain and update the agent’s internal position estimate over time.
--   When visualized, your estimated trajectory should closely follow the agent’s true path, despite the noise present in both the motion and measurements.
+-   When visualized, your estimated trajectory should closely follow the agent’s true path, despite the noise present in both the motion and measurements. Your estimated agent position is shown as an translucent copy of your agent which gets its position from the `position` property on the `LocalizationAgent` class.
+
+The `LocalizationAgent` has access to the true underlying occupancy grid. Use this occupancy grid to plan a route from the flag to the capture point. Your agent should be able to capture a single flag in 5 minutes.
+
+> [!NOTE]
+> Unlike the previous assignment, flag pickup and dropoff is no longer automatic! You'll have to manually send the appropriate action to pickup and drop off the flags. To succesfully perform these actions, you must be within 3 units of the flag/capture point.
+
+> [!NOTE]
+> There are many approaches you can take to plan this route! Think back to assignments 1 + 2 to determine which of these options might be best suited for this task. (Are you really planning in continuous space?)
+
+> [!TIP]
+> Just like with the `MappingAgent`, you may find it helpful to subclass the `TeleopAgent` when getting started. If you need help figuring out how to do this, post on Ed, stop by office hours, or catch Hammad after class!
 
 ## Installation
 

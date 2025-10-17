@@ -51,7 +51,7 @@ class TeleopAgent:
 
         return None
 
-    def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid) -> Action:
+    def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid, dt: float) -> Action:
         if self.pressed["space"]:
             self.pressed["space"] = False
             if game_state.agent.flag is None:
