@@ -44,6 +44,10 @@ This is where your work lives! There are three agents provided in this stencil:
 
 If you have any questions about what things do/how things work please feel free to post a question on [Ed](https://edstem.org/us/courses/82550/discussion)!
 
+### `src/maze/factor_graph.py`
+
+A small Gaussian factor graph library used in Task 2b to re-express your Kalman Filter as a factor graph and run variable elimination on it.
+
 ### `configs`
 
 Configuration files define parameters such as which agent to run, number of rays, and world setup. The two of most interest for this assignment are:
@@ -59,7 +63,7 @@ For the individual portion of this assignment, we'll be tackling SLAM by looking
 
 The first task will focus on mapping, where your agent will use simulated range measurements to incrementally build a 2D occupancy grid representing the world.
 
-The second task will focus on localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter (found in `src/maze/kalman_filter.py`).
+The second task will focus on localization, where your agent will maintain an estimate of its own position within that map using a simple 2D Kalman Filter (found in `src/maze/kalman_filter.py`). A follow-up piece (Task 2b) will have you re-express that same Kalman Filter as a small factor graph and implement variable elimination on it, to see firsthand that these are two views of the same underlying idea.
 
 Together, these components form the foundation for autonomous perception to enable your agent to navigate a partially unknown world using uncertain sensor data.
 
@@ -130,6 +134,32 @@ The `LocalizationAgent` has access to the true underlying occupancy grid. Use th
 
 > [!TIP]
 > Just like with the `MappingAgent`, you may find it helpful to subclass the `TeleopAgent` when getting started. If you need help figuring out how to do this, post on Ed, stop by office hours, or catch Hammad after class!
+
+### Task 2b: A Factor Graph View of Localization
+
+Your Kalman Filter recursively tracks a belief over the agent's position by alternating between two steps: predicting forward through a motion model, and correcting with a measurement model. It turns out this recursion is a special case of a much more general idea: representing a probabilistic estimation problem as a **factor graph** and running **variable elimination** on it.
+
+A factor graph represents a joint distribution as a graph of _variables_ (the things we don't know, e.g. the agent's position at each timestep) connected to _factors_ (potentials that constrain those variables, e.g. a prior belief, a motion model, or a measurement model). For Gaussian beliefs, it's convenient to write each factor in _canonical_ (information) form as a pair $(\Lambda, \eta)$ such that
+
+$$\text{factor}(x) \propto \exp\left(-\tfrac{1}{2} x^\top \Lambda x + \eta^\top x\right).$$
+
+In this form, combining factors that share variables is just adding their (padded) $\Lambda$/$\eta$ blocks together, and **eliminating** (marginalizing out) a variable is a Schur complement over those blocks. You'll build a two-node factor graph — one variable for the agent's previous position (`x_prev`) and one for its current position (`x_curr`) — using the exact same `F`, `Q`, `H`, and `R` your Kalman Filter already uses:
+
+-   A **prior factor** over `x_prev`, from the previous timestep's belief (given: `prior_factor`).
+-   A **motion factor** over `(x_prev, x_curr)`, encoding the conditional $x_\text{curr} \mid x_\text{prev} \sim \mathcal{N}(F x_\text{prev} + u, Q)$ — the same motion model used in `predict()`.
+-   A **measurement factor** over `x_curr`, encoding the likelihood $\mathcal{N}(z; H x_\text{curr}, R)$ — the same sensor model used in `update()` (given: `measurement_factor`).
+
+#### Implementation Steps
+
+In `src/maze/factor_graph.py`, implement:
+
+1. `motion_factor(F, Q, u, var_prev, var_curr)`: build the joint canonical factor over `(var_prev, var_curr)` for the linear-Gaussian motion conditional described above.
+2. `eliminate(joint, var)`: given a joint canonical factor, marginalize out `var` via the Schur complement, returning the resulting factor over the remaining variable(s).
+
+Once both are implemented, eliminating `x_prev` from `combine([prior_factor(...), motion_factor(...)])` should reproduce your Kalman Filter's `predict()` step exactly, and combining that result with a `measurement_factor(...)` should reproduce your `update()` step exactly — down to floating point tolerance. Run `uv run pytest tests/test_factor_graph_equivalence.py -v` to check your implementation against your own Kalman Filter.
+
+> [!NOTE]
+> Think about it: eliminating `x_prev` in temporal order is what collapses this graph back down to just two variables every timestep — which is exactly why the Kalman Filter can run in constant time and memory per step. What would happen to this graph, and to elimination, if you also had variables for landmark positions that got observed and re-observed over time? (You won't need to answer this anywhere — just something to chew on before the group assignment.)
 
 ## Installation
 

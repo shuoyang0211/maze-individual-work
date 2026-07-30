@@ -1,3 +1,5 @@
+from maze.plotter import render
+
 from maze_core import Action, GameState, OccupancyGrid, OccupancyGridEntry, Position, SensorConfidence
 
 def update_occupancy_grid_entry(cell: OccupancyGridEntry, confidence: SensorConfidence):
