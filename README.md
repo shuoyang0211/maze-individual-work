@@ -57,6 +57,48 @@ Configuration files define parameters such as which agent to run, number of rays
 
 Please feel free to create copies and modify these files as you work through the assignment to make sure things are working as expected! In particular, you may want to change the seed to generate a new maze or play around with the noise standard deviations!
 
+## Game Controls, API, and Occupancy Grid
+
+### Game Controls
+
+-   `W` / `A` / `S` / `D` — Move the agent.
+-   `Space` — Pick up or drop a flag (must be within 3 units of the flag or capture point).
+-   `O` — Toggle your agent's estimated occupancy grid.
+-   `T` — Toggle the true occupancy grid.
+-   `Esc` — Exit.
+
+### API
+
+Your agent's `get_action(game_state, occupancy_grid, dt)` receives a `GameState`. The key fields:
+
+-   `game_state.agent.id` — the ID to pass when constructing an `Action`.
+-   `game_state.agent.position` — noisy `(x, y)` position in world coordinates.
+-   `game_state.agent.raycasts` — list of `HitInfo`, spaced clockwise from the +x axis.
+-   `game_state.agent.flag` — entity ID of the carried flag, or `None`.
+
+Each `HitInfo` provides:
+
+-   `theta` — ray angle in radians (+y points **down**).
+-   `hit` — one of `Wall`, `Empty`, `Flag`, `CapturePoint`.
+-   `distance` — distance to the hit (or `max_distance` if nothing was hit).
+-   `hit_confidence` / `free_confidence` — per-class `SensorConfidence` (`p_free`, `p_wall`, `p_flag`, `p_capture_point`) for the hit cell and for cells the ray passed through.
+
+Return one of:
+
+-   `Action.Move(id=..., velocity=(vx, vy))`
+-   `Action.PickupFlag(id=...)`
+-   `Action.DropFlag(id=...)`
+
+### Occupancy Grid
+
+`OccupancyGrid` is indexed as `occupancy_grid[col, row]` with `(0, 0)` in the upper-left. Use `.width`, `.height`, and `.cell_size` for the layout.
+
+Each cell (`OccupancyGridEntry`) stores four per-class logits (clamped to $[-L, L]$):
+
+-   `logit_free`, `logit_wall`, `logit_flag`, `logit_capture_point` — read/write; higher means more likely.
+-   `probabilities()` — softmax over the logits.
+-   `assignment: EntityType | None` — the cell's predicted class. **You must set this yourself** (e.g. once one probability crosses a threshold); it is not derived from the logits automatically.
+
 ## Tasks
 
 For the individual portion of this assignment, we'll be tackling SLAM by looking at its two constituent parts separately: the localization problem and the mapping problem. By the end of this assignment, you should have agents that are individually able to map their environment and localize themselves within that map.
@@ -160,6 +202,17 @@ Once both are implemented, eliminating `x_prev` from `combine([prior_factor(...)
 
 > [!NOTE]
 > Think about it: eliminating `x_prev` in temporal order is what collapses this graph back down to just two variables every timestep — which is exactly why the Kalman Filter can run in constant time and memory per step. What would happen to this graph, and to elimination, if you also had variables for landmark positions that got observed and re-observed over time? (You won't need to answer this anywhere — just something to chew on before the group assignment.)
+
+### Task 3: Writeup
+
+In a short writeup, describe what you did and tried on this assignment. This is a chance to reflect on your approach and design choices, not a formal report — bullet points are fine.
+
+Please address the following for each task:
+
+-   **What you implemented.** Briefly summarize the approach you took for mapping, localization, and the factor graph.
+-   **What you tried that didn't work.** Design choices you explored and abandoned, bugs that took a while to track down, or parameter values that gave bad results and why you think they did.
+
+You are also welcome to include plots, screenshots, or short snippets of code that illustrate what you're describing. Submit the writeup as a markdown file 
 
 ## Installation
 
