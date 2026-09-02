@@ -2,16 +2,16 @@ from argparse import ArgumentParser
 from enum import StrEnum
 from importlib.metadata import version
 
-from maze.agents import TeleopAgent, LocalizationAgent, MappingAgent
-from maze_core import run, parse_config
+from maze_core import parse_config, run
+
+from maze.agents import LocalizationAgent, MappingAgent
+
 
 class AgentId(StrEnum):
-    TELEOP = "teleop"
     LOCALIZATION = "localization"
     MAPPING = "mapping"
 
 ID_TO_AGENT = {
-    AgentId.TELEOP: TeleopAgent,
     AgentId.LOCALIZATION: LocalizationAgent,
     AgentId.MAPPING: MappingAgent,
 }
@@ -28,7 +28,7 @@ def main():
         "--agent",
         type=AgentId,
         choices=list(AgentId),
-        default=AgentId.TELEOP,
+        default=AgentId.LOCALIZATION,
         help="Which agent to use.",
     )
 

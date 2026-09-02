@@ -1,5 +1,6 @@
 from maze_core import Position
 
+
 def position_to_grid_cell(position: Position, cell_size: float, world_width: float, world_height: float) -> tuple[int, int]:
     """
     Converts a world position to grid cell coordinates.

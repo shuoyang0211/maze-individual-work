@@ -1,5 +1,6 @@
-from maze_core import Position, Velocity
 import numpy as np
+from maze_core import Position, Velocity
+
 
 class KalmanFilter2D:
     """

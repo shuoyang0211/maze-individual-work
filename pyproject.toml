@@ -1,17 +1,22 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "maze-individual-stencil"
+name = "maze-individual"
 version = "0.1.0"
-description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["pynput>=1.8.1", "maze-core==0.0.1", "numpy>=2.3.4", "matplotlib>=3.10.7"]
+dependencies = [
+    "numpy>=2.3.4",
+    "maze-core==0.0.1",
+]
 
 [project.scripts]
 maze = "maze.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv]
 package = true
@@ -24,6 +29,3 @@ name = "course"
 url = "https://harvard-cs182-f25.github.io/maze/wheels/"
 format = "simple"
 explicit = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
