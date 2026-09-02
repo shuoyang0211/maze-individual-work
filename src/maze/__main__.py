@@ -4,16 +4,14 @@ from importlib.metadata import version
 
 from maze_core import parse_config, run
 
-from maze.agents import LocalizationAgent, MappingAgent
+from maze.agents import LocalizationAgent
 
 
 class AgentId(StrEnum):
     LOCALIZATION = "localization"
-    MAPPING = "mapping"
 
 ID_TO_AGENT = {
     AgentId.LOCALIZATION: LocalizationAgent,
-    AgentId.MAPPING: MappingAgent,
 }
 
 def main():
