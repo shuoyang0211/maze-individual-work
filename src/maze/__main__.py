@@ -1,41 +1,78 @@
+from __future__ import annotations
+
 from argparse import ArgumentParser
-from enum import StrEnum
 from importlib.metadata import version
 
-from maze_core import parse_config, run
+from maze_core import parse_config, run, run_headless
 
-from maze.agents import LocalizationAgent
+from maze import agents
 
-
-class AgentId(StrEnum):
-    LOCALIZATION = "localization"
-
-ID_TO_AGENT = {
-    AgentId.LOCALIZATION: LocalizationAgent,
+_AGENT_CLASS_NAMES = {
+    "mapping": "MappingAgent",
+    "localization": "LocalizationAgent",
+    "student": "StudentAgent",
+}
+AGENT_REGISTRY = {
+    agent_id: getattr(agents, class_name)
+    for agent_id, class_name in _AGENT_CLASS_NAMES.items()
+    if hasattr(agents, class_name)
 }
 
-def main():
+
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument(
         "--config",
         type=str,
         default="configs/default.yaml",
-        help="Path to the config file.",
+        help="Path to a config file.",
     )
     parser.add_argument(
         "--agent",
-        type=AgentId,
-        choices=list(AgentId),
-        default=AgentId.LOCALIZATION,
-        help="Which agent to use.",
+        choices=AGENT_REGISTRY,
+        default=next(iter(AGENT_REGISTRY)),
+        help="Which agent to run.",
+    )
+    parser.add_argument(
+        "--headless",
+        nargs="?",
+        const=300.0,
+        default=None,
+        type=float,
+        metavar="SECONDS",
+        help="Run for SECONDS of simulated time (default: 300).",
+    )
+    parser.add_argument(
+        "--teleop",
+        action="store_true",
+        help="Enable keyboard control to override actions.",
     )
 
     args = parser.parse_args()
+    if args.headless is not None and args.headless <= 0:
+        parser.error("--headless SECONDS must be positive")
 
     config = parse_config(args.config)
-    print(f"Using maze_core version: {version("maze_core")}")
-    print(f"Running {args.agent.value.upper()} agent with config: {args.config}")
-    run(config=config, policy=ID_TO_AGENT[args.agent]())
+    if args.teleop:
+        config.teleop = True
+
+    headless_seconds = args.headless
+    if config.headless and headless_seconds is None:
+        headless_seconds = 300.0
+    if headless_seconds is not None and config.teleop:
+        parser.error("--teleop cannot be used with a headless run")
+
+    print(f"Using maze_core version: {version('maze_core')}")
+    agent_type = AGENT_REGISTRY[args.agent]
+    print(f"Running {agent_type.__name__}")
+    print(f"Using config: {args.config}")
+    policy = agent_type()
+
+    if headless_seconds is None:
+        run(config=config, policy=policy)
+    else:
+        print(f"Headless evaluation for up to {headless_seconds:g} simulated seconds")
+        print(run_headless(config=config, policy=policy, max_seconds=headless_seconds))
 
 if __name__ == "__main__":
     main()
