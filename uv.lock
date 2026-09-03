@@ -4,12 +4,12 @@ requires-python = ">=3.13"
 
 [[package]]
 name = "maze-core"
-version = "0.1.0"
+version = "0.1.1"
 source = { registry = "https://harvard-cs182-f25.github.io/maze/wheels/" }
 wheels = [
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.0-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:3d2b1a1bed4cfdfa7e14ca65d27850bbb9214fae26320b5772bf9d18f903f63f" },
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5ec387483f7d6616cd5bf3e293c907239e2ef1f84fd75767c33fd08e40aeb300" },
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.0-cp310-abi3-win_amd64.whl", hash = "sha256:1c188cf8f21cd5ecb10eba4ef350b1a8938cfe5af9ca8fbb9a9f537d95e37ec0" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.1-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:9cff4ccec8a4a9b46b9fbb665aaf703457fa42f329e8cc608962bbbe2a644ac1" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cbd39a46ed21a7e333896534c9de7d940f4db9b248882486d31951d5d496ba9f" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.1.1-cp310-abi3-win_amd64.whl", hash = "sha256:c8bd1bf3b909a7fe0f6722beb9aa82e2adaa46a854e0a7690e68233833b69b92" },
 ]
 
 [[package]]

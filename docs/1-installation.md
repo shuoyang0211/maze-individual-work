@@ -8,7 +8,7 @@
 
 # Installation
 
-| [`README`](../README.md#cs-1820-individual-programming-assignment-3-goblets-and-ghouls) | [`Installation`] | [`Game Overview`](2-game-overview.md#game-overview) | [`Getting Started`](3-getting-started.md#getting-started) | [`Individual Tasks`](4-individual-tasks.md#individual-tasks) |
+| [`README`](../README.md#cs-1820-individual-programming-assignment-2-maze) | [`Installation`] | [`Game Overview`](2-game-overview.md#game-overview) | [`Getting Started`](3-getting-started.md#getting-started) | [`Individual Tasks`](4-individual-tasks.md#individual-tasks) |
 | :---: | :---: | :---: | :---: | :---: |
 
 <br>
@@ -159,12 +159,12 @@ For your environment to be detected, make sure that your opened folder in VS Cod
 To run any Python script, you can now simply use `uv run <your-script>`, and `uv` will automatically verify that your virtual environment is up-to-date and run your script using this environment. If everything has gone right, then you should be able to execute the following command and see the game!
 
 ```sh
-uv run gg
+uv run maze
 ```
 
 <br>
 
 ---
 
-| [← `README`](../README.md#cs-1820-individual-programming-assignment-3-goblets-and-ghouls) | [`Back to top`](#installation) | [`Game Overview` →](2-game-overview.md#game-overview) |
+| [← `README`](../README.md#cs-1820-individual-programming-assignment-2-maze) | [`Back to top`](#installation) | [`Game Overview` →](2-game-overview.md#game-overview) |
 | :--- | :---: | ---: |

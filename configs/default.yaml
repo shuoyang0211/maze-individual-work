@@ -17,6 +17,6 @@ maze_generation:
     cell_size: 10.0
 
 use_true_map: false
-teleop: false
+teleop: true
 debug: false
 headless: false
