@@ -8,288 +8,299 @@
 
 # Comments
 
-| [`GGConfig`](#ggconfig) | [`AgentConfig`](#agentconfig) | [`GobletConfig`](#gobletconfig) | [`WorldGenerationConfig`](#worldgenerationconfig) | [`GameState`](#gamestate) | [`Board`](#board) | [`Goblet`](#goblet) | [`Action`](#action) | [`GhostPolicy`](#ghostpolicy) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| [`GameState`](#gamestate) | [`AgentState`](#agentstate) | [`HitInfo`](#hitinfo) | [`SensorConfidence`](#sensorconfidence) | [`OccupancyGrid`](#occupancygrid) | [`OccupancyGridEntry`](#occupancygridentry) | [`Action`](#action) | [`EntityType`](#entitytype) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 <br>
 
-This file contains documentation for a subset of the classes and methods defined in `gg_core`.
-
-## `GGConfig`
-
-```python
-class GGConfig:
-    r"""
-    Represents the entire configuration of the game.
-    """
-
-    @property
-    def agent(self) -> AgentConfig:
-    
-    @property
-    def goblets(self) -> GobletConfig:
-    
-    @property
-    def world_generation(self) -> WorldGenerationConfig:
-```
-
-## `AgentConfig`
-
-```python
-class AgentConfig:
-    r"""
-    Stores the configuration of the agent and the ghost, if there is one.
-    """
-
-    @property
-    def name(self) -> str:
-        r"""
-        Returns the name of the agent.
-        """
-    
-    @property
-    def ghost_policy(self) -> GhostPolicy | None:
-        r"""
-        Returns the ghost's policy, if there is one.
-        """
-    
-    @property
-    def ghost_penalty(self) -> builtins.int:
-        r"""
-        Returns the reward applied when the ghost catches the agent.
-        """
-
-    @property
-    def ghost_occlusion(self) -> bool:
-        r"""
-        When true, a ghost hidden behind a wall (i.e., with no line of sight
-        from the agent) is not observed for policy look-up purposes. Defaults
-        to false. Invalid or hypothetical states where the ghost is inside a
-        wall are also treated as hidden.
-        """
-    
-    @property
-    def transition(self) -> list[float]:
-        r"""
-        Returns the probabilities that the agent's actual action are
-        [intended, right, back, left]. Entries must be nonnegative and sum to 1.
-        """
-```
-
-## `GobletConfig`
-
-```python
-class GobletConfig:
-    r"""
-    Stores the configuration of all goblets.
-    """
-
-    @property
-    def number(self) -> int:
-        r"""
-        Returns the initial number of goblets.
-        """
-
-    @property
-    def max_reward(self) -> int:
-        r"""
-        Returns the maximum reward of any goblet.
-        """
-```
-
-## `WorldGenerationConfig`
-
-```python
-class WorldGenerationConfig:
-    r"""
-    Stores the configuration of the gridworld.
-    """
-    
-    @property
-    def num_obstacles(self) -> int:
-        r"""
-        Returns the initial number of obstacles.
-        """
-
-    @property
-    def obstacle_radius_cells(self) -> int:
-        r"""
-        Returns the maximum radius of an obstacle in number of cells.
-        """
-
-    @property
-    def size(self) -> tuple[int, int]:
-        r"""
-        Returns the size of the world as a (width, height) tuple.
-        """
-```
+This file contains documentation for a subset of the classes defined in `maze_core`.
 
 ## `GameState`
 
 ```python
 class GameState:
     r"""
-    Represents the game state and holds the bulk of the game logic.
+    Represents a snapshot of the game state.
     """
 
     @property
-    def board(self) -> Board:
+    def agent(self) -> AgentState:
         r"""
-        Returns the state of the board.
+        Returns the state of the agent.
         """
 
     @property
-    def reward(self) -> int:
+    def total_flags(self) -> int:
         r"""
-        Represents the immediate reward of the current state. Equals the
-        configured ghost penalty if the agent has been caught by the ghost,
-        the value of a goblet if the agent has found a goblet, and zero
-        otherwise.
+        Returns the total number of flags.
         """
 
     @property
-    def done(self) -> bool:
+    def captured_flags(self) -> int:
         r"""
-        Returns True if the agent has collected a goblet or has been caught
-        by the ghost.
-        """
-
-    @property
-    def agent_position(self) -> tuple[int, int]:
-        r"""
-        Returns the current position of the agent.
-        """
-    
-    @property
-    def observed_ghost_position(self) -> tuple[int, int] | None:
-        r"""
-        Returns the position of the ghost as observed by the agent. If there is
-        no ghost, or if the ghost isn't currently visible (e.g., behind a wall)
-        when `ghost_occlusion` is enabled, returns None. Invalid states (e.g.,
-        where the ghost is inside a wall) are also treated as hidden.
-        """
-
-    @property
-    def visible_goblet_positions(self) -> list[tuple[int, int]]:
-        r"""
-        Returns the positions of goblets visible from the agent's current
-        position. Goblets hidden behind walls are omitted.
-        """
-    
-    @property
-    def visible_wall_positions(self) -> list[tuple[int, int]]:
-        r"""
-        Returns the positions of walls visible from the agent's current
-        position. A wall is visible if no other wall lies between the agent
-        and that wall.
-        """
-
-    @property
-    def episode_seed(self) -> int:
-        r"""
-        Returns the episode seed driving this state's RNG.
-        """
-
-    def all_states(self) -> list[GameState]:
-        r"""
-        Returns a list of `width * height` game states where the agent's
-        position is varied across all cells. Note that invalid states are not
-        filtered out.
-        """
-
-    def next_state(self, action: Action) -> GameState:
-        r"""
-        Returns the game state that would result from the agent moving in the
-        given direction. This move is deterministic, and does not update the
-        ghost's position.
-        """
-
-    def step(self, action: Action) -> GameState:
-        r"""
-        Returns a new game state resulting from one full environment step.
-        This step is not deterministic, and updates both the agent and the
-        ghost's position using the episode seed. Fails for the Teleop ghost.
-        """
-    
-    def with_seed(self, seed: int) -> GameState:
-        r"""
-        Returns a copy of the current game state with a fixed episode seed,
-        used to determine the actions taken by the agent and the ghost.
-        """
-
-    def reset(self, seed: int | None = None) -> tuple[GameState, int]:
-        r"""
-        Returns a new game state set to the original configuration, along with
-        the episode seed it uses. When `seed` is None, a fresh seed is sampled.
+        Returns the number of flags delivered to capture points.
         """
 ```
 
-## `Board`
+## `AgentState`
 
 ```python
-class Board:
+class AgentState:
     r"""
-    Represents the state of the board.
-    Stores the dimensions and board layout.
+    Represents the state of the agent, including its observed information.
     """
 
     @property
-    def width(self) -> int:
+    def id(self) -> int:
+        r"""
+        Returns the entity ID of the agent.
+        """
 
     @property
-    def height(self) -> int:
+    def position(self) -> tuple[float, float]:
+        r"""
+        Returns the observed position, including position noise.
+        """
 
     @property
-    def agent_position(self) -> tuple[int, int]:
+    def position_stddev(self) -> float:
+        r"""
+        Returns the standard deviation of position observations.
+        """
 
     @property
-    def ghost_position(self) -> tuple[int, int] | None:
+    def raycasts(self) -> list[HitInfo]:
+        r"""
+        Returns a list of range-sensor readings.
+        """
 
     @property
-    def goblets(self) -> list[Goblet]:
+    def flag_id(self) -> int | None:
+        r"""
+        Returns the ID of the flag carried, if any.
+        """
 
     @property
-    def wall_positions(self) -> set[tuple[int, int]]:
+    def max_speed(self) -> float:
+        r"""
+        Returns the maximum linear speed of the agent.
+        """
 ```
 
-## `Goblet`
+## `HitInfo`
 
 ```python
-class Goblet:
+class HitInfo:
     r"""
-    Represents the state of a single goblet.
+    Represents one range-sensor reading from the agent's current position.
     """
 
     @property
-    def position(self) -> tuple[int, int]:
+    def theta(self) -> float:
+        r"""
+        Returns the ray angle in radians clockwise from +x.
+        """
 
     @property
-    def reward(self) -> int:
+    def endpoint_type(self) -> EntityType:
+        r"""
+        Returns the type observed at the raycast endpoint. Equals `Free` if
+        no collision occurs before the endpoint.
+        """
+
+    @property
+    def distance(self) -> float:
+        r"""
+        Returns the reported distance, including range noise.
+        """
+
+    @property
+    def max_distance(self) -> float:
+        r"""
+        Returns the maximum distance the raycast can travel.
+        """
+
+    @property
+    def endpoint_confidence(self) -> SensorConfidence:
+        r"""
+        Returns the per-class confidence at the endpoint.
+        """
+
+    @property
+    def free_confidence(self) -> SensorConfidence:
+        r"""
+        Returns the per-class confidence for cells before the endpoint.
+        """
+```
+
+## `SensorConfidence`
+
+```python
+class SensorConfidence:
+    r"""
+    Represents per-class sensor confidence used to update an occupancy grid.
+    Note that these are not normalized probabilities.
+    """
+
+    @property
+    def conf_free(self) -> float:
+        r"""
+        Returns the confidence in a free space.
+        """
+
+    @property
+    def conf_wall(self) -> float:
+        r"""
+        Returns the confidence in a wall.
+        """
+
+    @property
+    def conf_flag(self) -> float:
+        r"""
+        Returns the confidence in a flag.
+        """
+
+    @property
+    def conf_capture_point(self) -> float:
+        r"""
+        Returns the confidence in a capture point.
+        """
+
+    def as_tuple(self) -> tuple[float, float, float, float]:
+        r"""
+        Returns `(conf_free, conf_wall, conf_flag, conf_capture_point)`.
+        """
+```
+
+## `OccupancyGrid`
+
+```python
+class OccupancyGrid:
+    r"""
+    Represents a mutable occupancy grid, indexed by `grid[column, row]`.
+    """
+
+    @property
+    def cell_size(self) -> float:
+        r"""
+        Returns the edge length of each cell.
+        """
+
+    @property
+    def columns(self) -> int:
+        r"""
+        Returns the number of columns.
+        """
+
+    @property
+    def rows(self) -> int:
+        r"""
+        Returns the number of rows.
+        """
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        r"""
+        Returns `(columns, rows)`.
+        """
+```
+
+## `OccupancyGridEntry`
+
+```python
+class OccupancyGridEntry:
+    r"""
+    Represents a mutable occupancy-grid cell.
+    """
+
+    @property
+    def assignment(self) -> EntityType | None:
+        r"""
+        Mutable cell type assignment. Must be updated manually.
+        """
+
+    @property
+    def logit_free(self) -> float:
+        r"""
+        Mutable logit for free space.
+        """
+
+    @property
+    def logit_wall(self) -> float:
+        r"""
+        Mutable logit for a wall.
+        """
+
+    @property
+    def logit_flag(self) -> float:
+        r"""
+        Mutable logit for a flag.
+        """
+
+    @property
+    def logit_capture_point(self) -> float:
+        r"""
+        Mutable logit for a capture point.
+        """
+
+    def probabilities(self) -> tuple[float, float, float, float]:
+        r"""
+        Returns softmax probabilities `(free, wall, flag, capture_point)`.
+        """
 ```
 
 ## `Action`
 
 ```python
 class Action:
-    r"""
-    Represents an agent action.
-    """
-    Up = ...
-    Down = ...
-    Left = ...
-    Right = ...
+    r"""An action returned by an agent policy."""
+
+    class Move(Action):
+        r"""
+        Moves agent `agent_id` at `velocity`, capped to agent's max speed.
+
+        Example: `Action.Move(agent_id, velocity)`.
+        """
+
+        @property
+        def agent_id(self) -> int: ...
+
+        @property
+        def velocity(self) -> tuple[float, float]: ...
+
+    class PickupFlag(Action):
+        r"""
+        Makes agent `agent_id` attempt to pick up a nearby flag.
+
+        Example: `Action.PickupFlag(agent_id)`.
+        """
+
+        @property
+        def agent_id(self) -> int: ...
+
+    class DropFlag(Action):
+        r"""
+        Makes agent `agent_id` attempt to drop its flag at a capture point.
+
+        Example: `Action.DropFlag(agent_id)`.
+        """
+
+        @property
+        def agent_id(self) -> int: ...
 ```
 
-## `GhostPolicy`
+## `EntityType`
 
 ```python
-class GhostPolicy:
+class EntityType(Enum):
     r"""
-    Represents a policy for the ghost.
+    Represents the type observed at the endpoint of a range-sensor reading.
     """
-    Random = ...
-    Chaser = ...
-    Teleop = ...
+    Free = ...
+    Wall = ...
+    Flag = ...
+    CapturePoint = ...
+    Unknown = ...
 ```
 
 <br>
