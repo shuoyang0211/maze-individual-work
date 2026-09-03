@@ -14,7 +14,7 @@ class LocalizationAgent:
         return self._name
 
     @property
-    def position(self) -> Position:
+    def estimated_position(self) -> Position:
         raise NotImplementedError
 
     def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid, dt: float) -> Action:
