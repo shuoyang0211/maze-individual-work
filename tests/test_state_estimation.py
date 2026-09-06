@@ -1,6 +1,6 @@
 import numpy as np
 
-from maze.factor_graph import (
+from maze.justin_factor_graph import (
     combine,
     eliminate,
     measurement_factor,
@@ -8,7 +8,7 @@ from maze.factor_graph import (
     prior_factor,
     to_moment,
 )
-from maze.kalman_filter import KalmanFilter2D
+from maze.justin_kalman_filter import KalmanFilter2D
 
 
 def test_factor_graph_elimination_matches_kalman_filter():

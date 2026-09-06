@@ -10,6 +10,7 @@ from maze import agents
 _AGENT_CLASS_NAMES = {
     "mapping": "MappingAgent",
     "localization": "LocalizationAgent",
+    "slam": "SlamAgent",
     "student": "StudentAgent",
 }
 AGENT_REGISTRY = {

@@ -51,12 +51,6 @@ class AgentState:
     """
 
     @property
-    def id(self) -> int:
-        r"""
-        Returns the entity ID of the agent.
-        """
-
-    @property
     def position(self) -> tuple[float, float]:
         r"""
         Returns the observed position, including position noise.
@@ -75,9 +69,9 @@ class AgentState:
         """
 
     @property
-    def flag_id(self) -> int | None:
+    def carrying_flag(self) -> bool:
         r"""
-        Returns the ID of the flag carried, if any.
+        Returns whether the agent is currently carrying a flag.
         """
 
     @property
@@ -203,6 +197,16 @@ class OccupancyGrid:
         r"""
         Returns `(columns, rows)`.
         """
+
+    def cell_at(self, x: float, y: float) -> tuple[int, int] | None:
+        r"""
+        Returns the `(column, row)` containing `(x, y)`, or `None` if outside grid.
+        """
+
+    def world_center(self, column: int, row: int) -> tuple[float, float] | None:
+        r"""
+        Returns the center of cell `(column, row)`, or `None` if outside grid.
+        """
 ```
 
 ## `OccupancyGridEntry`
@@ -222,25 +226,25 @@ class OccupancyGridEntry:
     @property
     def logit_free(self) -> float:
         r"""
-        Mutable logit for free space.
+        Mutable logit for free space. Clamps to `±6`.
         """
 
     @property
     def logit_wall(self) -> float:
         r"""
-        Mutable logit for a wall.
+        Mutable logit for a wall. Clamps to `±6`.
         """
 
     @property
     def logit_flag(self) -> float:
         r"""
-        Mutable logit for a flag.
+        Mutable logit for a flag. Clamps to `±6`.
         """
 
     @property
     def logit_capture_point(self) -> float:
         r"""
-        Mutable logit for a capture point.
+        Mutable logit for a capture point. Clamps to `±6`.
         """
 
     def probabilities(self) -> tuple[float, float, float, float]:
@@ -257,36 +261,27 @@ class Action:
 
     class Move(Action):
         r"""
-        Moves agent `agent_id` at `velocity`, capped to agent's max speed.
+        Moves the agent at `velocity`, capped to its `max_speed`.
 
-        Example: `Action.Move(agent_id, velocity)`.
+        Example: `Action.Move(velocity=(1.0, 0.0))`.
         """
-
-        @property
-        def agent_id(self) -> int: ...
 
         @property
         def velocity(self) -> tuple[float, float]: ...
 
     class PickupFlag(Action):
         r"""
-        Makes agent `agent_id` attempt to pick up a nearby flag.
+        Picks up a flag, if one is on the ground within reach.
 
-        Example: `Action.PickupFlag(agent_id)`.
+        Example: `Action.PickupFlag()`.
         """
-
-        @property
-        def agent_id(self) -> int: ...
 
     class DropFlag(Action):
         r"""
-        Makes agent `agent_id` attempt to drop its flag at a capture point.
+        Drops the flag the agent is carrying, capturing it if a capture point is within reach.
 
-        Example: `Action.DropFlag(agent_id)`.
+        Example: `Action.DropFlag()`.
         """
-
-        @property
-        def agent_id(self) -> int: ...
 ```
 
 ## `EntityType`

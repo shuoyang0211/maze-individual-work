@@ -1,7 +1,7 @@
 agent:
     name: "Agent"
     max_speed: 10.0
-    policy_hz: 60.0
+    policy_hz: 0.0
     position_stddev: 0.0
     range_stddev: 0.0
     occupancy_grid_cell_size: 1.0
