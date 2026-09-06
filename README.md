@@ -18,7 +18,7 @@ Welcome back to the CS 1820 Arcade! For this series of assignments, we’re now 
 In particular, you will implement two key perception modules, *localization* and *mapping*, which you will combine to create a SLAM agent. To get started, we have split this `README` into a series of Markdown files, which you can navigate through at the top. As always, we recommend reading through the entire assignment and the stencil code before you start working.
 
 <figure style="text-align: center;">
-    <img src="./docs/assets/game_preview.webp" alt="The adventurer is caught by the ghost." width="600">
+    <img src="./docs/assets/game_preview.webp" alt="The agent locates a flag and drops it at a capture point." width="600">
 </figure>
 
 <br>

@@ -1,14 +1,14 @@
 agent:
     name: "Agent"
-    max_speed: 10.0
-    policy_hz: 0.0
+    max_speed: 30.0
+    policy_hz: 0.0 # disables policy
     position_stddev: 0.0
     range_stddev: 0.0
     occupancy_grid_cell_size: 1.0
 
 flags:
-    flag_count: 1
-    capture_point_count: 1
+    flag_count: 3
+    capture_point_count: 3
 
 maze_generation:
     seed: 0

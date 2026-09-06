@@ -35,6 +35,11 @@ def main() -> None:
         help="Which agent to run.",
     )
     parser.add_argument(
+        "--seed",
+        type=int,
+        help="Maze generation seed, overriding the config.",
+    )
+    parser.add_argument(
         "--headless",
         nargs="?",
         const=300.0,
@@ -54,6 +59,13 @@ def main() -> None:
         parser.error("--headless SECONDS must be positive")
 
     config = parse_config(args.config)
+
+    if args.seed is not None:
+        if not 0 <= args.seed <= 0xFFFFFFFF:
+            parser.error("--seed must fit in an unsigned 32-bit integer")
+        maze_generation = config.maze_generation
+        maze_generation.seed = args.seed
+        config.maze_generation = maze_generation
     if args.teleop:
         config.teleop = True
 
@@ -61,7 +73,7 @@ def main() -> None:
     if config.headless and headless_seconds is None:
         headless_seconds = 300.0
     if headless_seconds is not None and config.teleop:
-        parser.error("--teleop cannot be used with a headless run")
+        parser.error("Teleop cannot be used with a headless run")
 
     print(f"Using maze_core version: {version('maze_core')}")
     agent_type = AGENT_REGISTRY[args.agent]

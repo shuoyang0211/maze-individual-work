@@ -19,35 +19,84 @@ Now, you should be ready to start training your own policies and testing them ou
 
 ## Running code
 
-### Using `gg`
+### Using `maze`
 
 To run the starter code, you can use the following command.
 
 ```sh
-gg [-h] [--config CONFIG] [--world-file WORLD_FILE]
-   [--render-policy RENDER_POLICY | --train-algo TRAIN_ALGO]
-   [--out OUT] [--episode-seed EPISODE_SEED]
+maze [-h] [--config CONFIG] [--agent AGENT_ID]
+     [--seed SEED] [--headless [SECONDS]] [--teleop]
 ```
 
-See the following for example usage. Remember that policies are specific to the worlds they were trained for. To get you started, we have also provided a default policy that you can render with `uv run gg`.
+See the following for example usage.
 
 ```sh
-# train a policy (for the default world) using src/gg/value_iteration.py
-uv run gg --train-algo value_iteration --out policies/my_policy.npz
-
-# render your value iteration policy (in the default world)
-uv run gg --render-policy policies/my_policy.npz
+uv run maze --config configs/mapping.yaml --agent mapping
 ```
 
-### Using fixed world YAML files
+Additionally, headless mode allows to simulate a game without the GUI, outputting some useful information about the run. You may also find the teleop agent useful to debug your mapping implementation.
 
-Optionally, a config's random world generation can be overridden using a fixed world file, which can either be passed as an argument to `gg` or as a field in the config. To edit your own worlds, you can run the following.
+### Testing your code
+
+We use [`pytest`](https://docs.pytest.org/en/stable/) to write and run tests for your assignments. `pytest` will automatically discover any files of the form `test_*.py` and `*_test.py`, making it easy to write your own custom tests. To run all TA-provided and custom tests, use the following.
 
 ```sh
-uv run scripts/creator.py [--help] (--load LOAD | --size SIZE) [--out OUT]
+uv run pytest
 ```
 
-If you find yourself frequently editing configs and world files by hand, you may also be interested in `schemas/`. There, we have provided JSON schemas to help you edit and validate YAMLs within VS Code.
+### Debugging tips
+
+`pytest` comes with a *ton* of flags to help you test and debug your code. Here, we have listed only a few flags that you may find useful.
+
+> <details><summary><b>Selecting tests</b></summary>
+>
+> ```sh
+> pytest                      # run all tests (auto-discovery)
+> pytest <path/>              # run tests under a directory
+> pytest <path/test_*.py>     # run tests in a file
+> ```
+>
+> </details>
+
+> <details><summary><b>Failure control</b></summary>
+>
+> ```sh
+> pytest -x                   # stop after first failure
+> pytest --maxfail=3          # stop after 3 failures
+> pytest --lf                 # run last-failed tests only
+> pytest --ff                 # run previous failures first, then the rest
+> pytest --sw                 # stepwise (stop on first fail, resume next time)
+> ```
+>
+> </details>
+
+> <details><summary><b>Adjusting the output</b></summary>
+>
+> ```sh
+> pytest -q                   # quiet (less output)
+> pytest -v                   # verbose (show each test)
+> pytest -vv                  # very verbose (show untruncated outputs)
+> pytest -s                   # don't capture stdout/stderr (i.e., show prints)
+> pytest -rA                  # show summary for all outcomes
+> pytest -l                   # show local variables in tracebacks
+> pytest --tb=short           # shorter tracebacks
+> pytest --tb=line            # one-line tracebacks
+> pytest --durations=10       # show 10 slowest tests
+> ```
+>
+> </details>
+
+> <details><summary><b>Common flag combinations</b></summary>
+>
+> ```sh
+> pytest -x -vv -rA --tb=short    # fail fast with max verbosity and condensed traces
+> pytest --lf -s -vv              # rerun only what failed last time, and show prints
+> pytest -s > <output.txt>        # redirect prints to a file for readability
+> ```
+>
+> </details>
+
+<br>
 
 <br>
 
