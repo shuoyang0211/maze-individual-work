@@ -7,8 +7,8 @@ agent:
     occupancy_grid_cell_size: 1.0
 
 flags:
-    flag_count: 1
-    capture_point_count: 1
+    flag_count: 0
+    capture_point_count: 0
 
 maze_generation:
     seed: 0
