@@ -1,26 +1,3 @@
-"""
-A minimal Gaussian factor graph library, and a 2D filter built on top of it.
-
-Each `GaussianFactor` represents a potential over one or more variables in
-*canonical* (a.k.a. information) form:
-
-    factor(x) ∝ exp(-1/2 x^T Lambda x + eta^T x)
-
-Canonical form is convenient here for two reasons:
-  - Combining factors that share variables is just summing their (padded)
-    Lambda/eta blocks.
-  - Eliminating (marginalizing out) a variable is a Schur complement.
-
-`FactorGraphFilter2D`, at the bottom of this file, wires those two operations
-into the same interface `KalmanFilter2D` exposes, over the same motion and
-measurement model. One `predict` is a two-node graph over `x_prev` and
-`x_curr` whose elimination of `x_prev` reproduces the Kalman prediction; one
-`update` is a single `combine` with the measurement likelihood. Because both
-filters are drop-in replacements for each other, `LocalizationAgent` can run
-on either, and `tests/test_state_estimation.py` checks that they agree step
-for step over a whole trajectory.
-"""
-
 from dataclasses import dataclass, replace
 
 import numpy as np
