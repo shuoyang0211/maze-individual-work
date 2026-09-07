@@ -2,87 +2,78 @@ import numpy as np
 from maze_core import Position, Velocity
 
 
-def transition_matrix() -> np.ndarray:
-    """
-    Return the state transition matrix F.
-
-    Under the constant-velocity model the previous position is carried forward unchanged; the commanded motion enters
-    separately through the control vector, so F is the identity.
-    """
-    return np.eye(2, dtype=np.float64)
-
-
 def control_vector(dt: float, control_input: Velocity) -> np.ndarray:
     """
-    Return the displacement u contributed by holding a commanded velocity for one time step.
+    Return the displacement from holding `control_input` for one step of `dt`.
 
     Parameters:
-        - dt: Time step in seconds.
-        - control_input: Tuple (vx, vy) representing the commanded velocity.
+        `dt`: Time step in seconds.
+        `control_input`: Tuple (vx, vy) representing the commanded velocity.
+
+    Returns:
+        The 2x1 displacement over one step.
     """
     return dt * np.array(control_input, dtype=np.float64).reshape(2, 1)
 
 
 def process_noise(dt: float, process_noise_stddev: float) -> np.ndarray:
     """
-    Return the process noise covariance Q.
+    Return the process noise covariance Q for a single time step.
 
-    The process noise represents acceleration uncertainty. Since we assume the noise in each axis is independent, Q is
-    diagonal, and since acceleration is integrated twice to reach position, the variance grows with dt^4/4.
+    Q represents acceleration uncertainty. The noise in each axis is
+    independent, so Q is diagonal, and acceleration is integrated twice to
+    reach position, so the variance over one step grows with `dt`^4 / 4.
 
     Parameters:
-        - dt: Time step in seconds.
-        - process_noise_stddev: Standard deviation of the acceleration noise.
-    """
-    return (dt**4 / 4.0) * process_noise_stddev**2 * np.eye(2, dtype=np.float64)
+        `dt`: Time step in seconds.
+        `process_noise_stddev`: Standard deviation of the acceleration noise.
 
-
-def measurement_matrix() -> np.ndarray:
+    Returns:
+        The 2x2 process noise covariance Q.
     """
-    Return the measurement matrix H.
-
-    The agent observes its own position directly, so H is the identity.
-    """
-    return np.eye(2, dtype=np.float64)
+    raise NotImplementedError
 
 
 def measurement_noise(position_stddev: float) -> np.ndarray:
     """
-    Return the measurement noise covariance R for an isotropic position observation.
+    Return the measurement noise covariance R for a position observation.
+
+    Observations are isotropic: the same standard deviation in each axis, with
+    no correlation between them.
 
     Parameters:
-        - position_stddev: Standard deviation of the position measurement noise.
+        `position_stddev`: Standard deviation of the position measurement noise.
+
+    Returns:
+        The 2x2 measurement noise covariance R.
     """
-    return position_stddev**2 * np.eye(2, dtype=np.float64)
+    raise NotImplementedError
 
 
 class KalmanFilter2D:
     """
-    Constant-velocity 2D Kalman Filter.
-    The internal state is represented as a column vector containing the 2D position: [x, y]^T
-    The initial covariances are large (1e4) until initialized.
+    Constant-velocity 2D Kalman Filter over the position state [x, y]^T, whose
+    covariance starts at 1e4 until `initialize` is called.
 
-    The process model assumes constant velocity, with process noise representing acceleration uncertainty. Furthermore,
-    assume that the position noise in each axis is independent. The matrices of that model are defined by the module
-    level functions above, which you should use rather than rebuilding F, Q, H, and R by hand. `FactorGraphFilter2D` in
-    `factor_graph.py` is built from the same functions, which is what lets the two filters be compared directly.
+    The previous position is carried forward unchanged and the commanded motion
+    enters separately through the control vector, so `F` is the identity; the
+    agent observes its position directly, so `H` is as well. Q and R come from
+    `process_noise` and `measurement_noise`, which `FactorGraphFilter2D` also
+    calls — that shared model is what makes the two filters comparable.
 
     Parameters:
-        - process_noise_stddev: Standard deviation of the acceleration noise (affects the process noise covariance Q
+        `process_noise_stddev`: Standard deviation of the acceleration noise.
     """
 
     def __init__(self, process_noise_stddev: float = 2.0):
-        # Estimated State
+        # Estimated state and its covariance
         self.x = np.zeros((2, 1), dtype=np.float64)
-        # Estimated State Covariance
         self.P = np.eye(2, dtype=np.float64) * 1e4
 
-        # Measurement Matrix
-        self.H = measurement_matrix()
-        # Transition Matrix
-        self.F = transition_matrix()
+        # Measurement and transition matrices
+        self.H = np.eye(2, dtype=np.float64)
+        self.F = np.eye(2, dtype=np.float64)
 
-        # Process Noise Covariance
         self.process_noise_stddev = process_noise_stddev
 
     @property
@@ -95,32 +86,30 @@ class KalmanFilter2D:
 
     def initialize(self, initial_position: Position, position_stddev: float):
         """
-        Initialize the filter with an initial position and covariance.
-        The initial velocity is set to zero with no uncertainty.
+        Set the belief to `initial_position` with the given uncertainty.
 
         Parameters:
-            - initial_position: Tuple (x, y) representing the initial position.
-            - position_stddev: Standard deviation of the initial position estimate.
+            `initial_position`: Tuple (x, y) representing the initial position.
+            `position_stddev`: Standard deviation of the initial estimate.
         """
         raise NotImplementedError
 
     def predict(self, dt: float, control_input: Velocity):
         """
-        Predict the next state and covariance given the time step and the control input (velocity).
-        Note that the process noise is applied here and corresponds to acceleration uncertainty.
+        Advance the belief by one time step, applying the process noise.
 
         Parameters:
-            - dt: Time step in seconds.
-            - control_input: Tuple (vx, vy) representing the commanded velocity.
+            `dt`: Time step in seconds.
+            `control_input`: Tuple (vx, vy) representing the commanded velocity.
         """
         raise NotImplementedError
 
     def update(self, position_measurement: Position, position_stddev: float):
         """
-        Update the state with a new position measurement.
+        Fold a position measurement into the belief.
 
         Parameters:
-            - position_measurement: Tuple (x, y) representing the measured position.
-            - position_stddev: Standard deviation of the position measurement noise.
+            `position_measurement`: Tuple (x, y) of the measured position.
+            `position_stddev`: Standard deviation of the measurement noise.
         """
         raise NotImplementedError

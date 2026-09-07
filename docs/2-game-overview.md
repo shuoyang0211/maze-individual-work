@@ -26,7 +26,7 @@ In particular, each entry in the grid stores log-odds for that cell being a free
 <figure style="text-align: center;">
     <img src="./assets/maze_structure.png" alt="The agent is shown in the default maze." width="600">
     <figcaption style="font-style: italic;">
-        The agent is represented by a red square. Walls are shown as dark blue, while flags and capture points are given in orange and yellow, respectively.
+        The agent is represented by a red square. Walls are shown in dark blue, while flags and capture points are given in orange and yellow, respectively.
     </figcaption>
 </figure>
 
@@ -37,7 +37,7 @@ In particular, each entry in the grid stores log-odds for that cell being a free
 Your agent will not necessarily know its exact location, nor will it have fully accurate information about its environment. Stated precisely, your agent will receive noisy position observations and will have to compute an `estimated_position`, which is rendered as a translucent ghost. Moreover, the surrounding environment will only expose limited information through **raycasts**, which act as range sensor readings similar to LiDAR. These are equally spaced around the agent and provide noisy ray-based observations to nearby objects.
 
 <figure style="text-align: center;">
-    <img src="./assets/noisy_sensors.png" alt="The agent's occupancy grid is being filled in." width="600">
+    <img src="./assets/noisy_sensors.webp" alt="The agent's occupancy grid is being filled in." width="600">
     <figcaption style="font-style: italic;">
         The agent's computed occupancy grid can be toggled with `C`.
     </figcaption>
@@ -56,7 +56,7 @@ To control the agent, you will provide a **policy**, which periodically observes
  Note that the agent must be within the interaction radius of a flag to pick it up, and a flag must be dropped within the interaction radius of a capture point to be captured. Your agent's goal is now to explore the world around it, to localize itself, and to capture all the flags.
 
 <figure style="text-align: center;">
-    <img src="./assets/capturing_the_flag.png" alt="The agent picks up a flag and drops it at a capture point." width="600">
+    <img src="./assets/capturing_the_flag.webp" alt="The agent picks up a flag and drops it at a capture point." width="600">
     <figcaption style="font-style: italic;">
         “The right man in the wrong place can make all the difference in the world.” —The G-Man
     </figcaption>

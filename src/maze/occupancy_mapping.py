@@ -9,7 +9,7 @@ from maze_core import (
 from maze.utils import line_between
 
 ASSIGN_THRESHOLD = 0.5
-LOG_ODDS_SCALE = 1.0
+LOG_ODDS_SCALE = 5.0
 
 
 def update_cell(cell: OccupancyGridCell, confidence: SensorConfidence):

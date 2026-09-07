@@ -4,9 +4,9 @@ from maze.kalman_filter import KalmanFilter2D
 from maze.occupancy_mapping import update_grid
 
 
-class MappingAgent:
+class StudentAgent:
     def __init__(self):
-        self._name = "Slam Agent"
+        self._name = "Student Agent"
 
     @property
     def name(self) -> str:

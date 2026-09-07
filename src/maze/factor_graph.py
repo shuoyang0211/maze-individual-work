@@ -1,15 +1,29 @@
+"""
+A minimal Gaussian factor graph library, and a 2D filter built on top of it.
+
+A `GaussianFactor` is a potential over one or more variables in *canonical*
+(a.k.a. information) form:
+
+    factor(x) ∝ exp(-1/2 x^T Lambda x + eta^T x)
+
+That parameterization is worth the change of coordinates because it makes the
+two operations this module needs cheap: combining factors that share variables
+is a sum of their padded blocks, and marginalizing a variable out is a Schur
+complement.
+
+`FactorGraphFilter2D` wires those two operations into the interface
+`KalmanFilter2D` exposes, over the same model. Its `predict` is a two-node
+graph over `x_prev` and `x_curr` whose elimination of `x_prev` reproduces the
+Kalman prediction, and its `update` is a single `combine` with the measurement
+likelihood.
+"""
+
 from dataclasses import dataclass, replace
 
 import numpy as np
 from maze_core import Position, Velocity
 
-from maze.kalman_filter import (
-    control_vector,
-    measurement_matrix,
-    measurement_noise,
-    process_noise,
-    transition_matrix,
-)
+from maze.kalman_filter import control_vector, measurement_noise, process_noise
 
 
 @dataclass
@@ -19,9 +33,9 @@ class GaussianFactor:
     of which has `dim` components.
 
     `Lambda` and `eta` are laid out in scope order: variable `scope[i]` owns
-    rows (and columns) `i * dim` through `(i + 1) * dim`. Every function in
-    this module relies on that convention, so use `indices_for` to address a
-    variable's block rather than recomputing offsets.
+    rows and columns `i * dim` through `(i + 1) * dim`. Every function here
+    relies on that convention, so address a variable's block with
+    `indices_for` rather than recomputing offsets.
     """
 
     scope: tuple[str, ...]
@@ -34,20 +48,23 @@ class GaussianFactor:
         Return the row/column indices that `variables` occupy in this factor's
         `Lambda` and `eta`, concatenated in the order given. Pair with
         `np.ix_(idx, idx)` to slice a square block out of `Lambda`.
+
+        Parameters:
+            `variables`: Names of the variables to address, in the order their
+                indices should appear.
+
+        Returns:
+            The concatenated indices of the requested variables' blocks.
         """
-        blocks = [
-            np.arange(self.scope.index(var) * self.dim, (self.scope.index(var) + 1) * self.dim)
-            for var in variables
-        ]
+        blocks = []
+        for var in variables:
+            start = self.scope.index(var) * self.dim
+            blocks.append(np.arange(start, start + self.dim))
         return np.concatenate(blocks) if blocks else np.zeros(0, dtype=np.intp)
 
 
 def to_moment(factor: GaussianFactor) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Convert a canonical-form factor over a single variable back to
-    (mean, covariance) so it can be compared against the Kalman Filter's
-    (x, P).
-    """
+    """Return the mean and covariance of a factor over a single variable."""
     Sigma = np.linalg.inv(factor.Lambda)
     mu = Sigma @ factor.eta
     return mu, Sigma
@@ -55,16 +72,16 @@ def to_moment(factor: GaussianFactor) -> tuple[np.ndarray, np.ndarray]:
 
 def prior_factor(mean: np.ndarray, cov: np.ndarray, var: str) -> GaussianFactor:
     """Canonical form of a Gaussian prior N(mean, cov) over a single variable."""
-    Lambda = np.linalg.inv(cov)
+    try:
+        Lambda = np.linalg.inv(cov)
+    except np.linalg.LinAlgError:
+        raise ValueError("prior_factor() requires a positive definite covariance") from None
     eta = Lambda @ mean
     return GaussianFactor(scope=(var,), dim=mean.shape[0], Lambda=Lambda, eta=eta)
 
 
 def measurement_factor(H: np.ndarray, R: np.ndarray, z: np.ndarray, var: str) -> GaussianFactor:
-    """
-    Canonical form of the Gaussian likelihood N(z; H @ x, R) as a factor
-    over `x`, using the same H, R your `KalmanFilter2D.update` uses.
-    """
+    """Canonical form of the likelihood N(z; H @ x, R) as a factor over `var`."""
     Rinv = np.linalg.inv(R)
     Lambda = H.T @ Rinv @ H
     eta = H.T @ Rinv @ z
@@ -73,9 +90,9 @@ def measurement_factor(H: np.ndarray, R: np.ndarray, z: np.ndarray, var: str) ->
 
 def combine(factors: list[GaussianFactor]) -> GaussianFactor:
     """
-    Merge multiple factors into a single joint canonical factor over the union
-    of their scopes, by adding each factor's Lambda/eta blocks into the joint
-    at the rows its variables occupy there.
+    Merge factors into a single joint over the union of their scopes, in
+    first-seen order, by summing their blocks at the rows each variable
+    occupies in the joint.
     """
     if not factors:
         raise ValueError("combine() requires at least one factor")
@@ -108,24 +125,40 @@ def combine(factors: list[GaussianFactor]) -> GaussianFactor:
 
 def motion_factor(F: np.ndarray, Q: np.ndarray, u: np.ndarray, var_prev: str, var_curr: str) -> GaussianFactor:
     """
-    Build the joint canonical factor over (var_prev, var_curr) for the
-    linear-Gaussian conditional x_curr | x_prev ~ N(F @ x_prev + u, Q),
-    i.e. the same motion model used in `KalmanFilter2D.predict`.
+    Build the joint canonical factor over (`var_prev`, `var_curr`) for the
+    conditional x_curr | x_prev ~ N(F @ x_prev + u, Q), the same motion model
+    `KalmanFilter2D.predict` uses.
 
-    The returned factor has scope `(var_prev, var_curr)`, so its `Lambda` is
-    2 * dim wide with `var_prev` occupying the leading block.
+    The result has scope (`var_prev`, `var_curr`), so its `Lambda` is
+    `2 * dim` wide with `var_prev` leading. Its `dim` is still the size of one
+    variable, not the width of `Lambda`.
+
+    Parameters:
+        `F`: Transition matrix.
+        `Q`: Process noise covariance.
+        `u`: Column vector of the control displacement over the step.
+        `var_prev`: Name of the variable before the step.
+        `var_curr`: Name of the variable after the step.
+
+    Returns:
+        A factor over both variables, coupled through the motion model.
     """
     raise NotImplementedError
 
 
 def eliminate(joint: GaussianFactor, var: str) -> GaussianFactor:
     """
-    Marginalize `var` out of `joint` via the Schur complement, returning
-    the resulting factor over the remaining variables.
+    Marginalize `var` out of `joint` via the Schur complement.
 
-    `joint.indices_for` gives you the eliminated block and the surviving
-    blocks; the result keeps the surviving variables in their original scope
-    order.
+    `joint.indices_for` gives you the eliminated and surviving blocks. The
+    result keeps the surviving variables in their original scope order.
+
+    Parameters:
+        `joint`: Factor to marginalize.
+        `var`: Name of the variable to remove.
+
+    Returns:
+        A factor over `joint.scope` without `var`.
     """
     raise NotImplementedError
 
@@ -146,22 +179,28 @@ def _relabel(factor: GaussianFactor, var: str) -> GaussianFactor:
 class FactorGraphFilter2D:
     """
     Constant-velocity 2D filter exposing the same interface as
-    `KalmanFilter2D`, implemented by building a small factor graph on every
-    step and eliminating it.
+    `KalmanFilter2D`, implemented by building a small factor graph each step
+    and eliminating it. The belief is carried in canonical form rather than as
+    `x` and `P`.
 
-    The belief is carried in canonical form rather than as (x, P). `predict`
-    combines it with a motion factor and eliminates the previous time step;
-    `update` combines it with a measurement factor, which in canonical form is
-    just addition. Both use the model functions from `kalman_filter.py`, so any
-    difference from `KalmanFilter2D` is a difference in your `motion_factor` or
-    `eliminate`, not in the model.
+    `F` and `H` match `KalmanFilter2D`, and Q and R come from the same
+    `process_noise` and `measurement_noise`, so a disagreement between the two
+    filters points at your `motion_factor` or `eliminate`, not at the model.
+    Canonical form does invert Q, which makes this the more numerically
+    delicate of the two: at very small `dt` the filters can drift apart by a
+    small amount of floating point error even when both are correct.
 
     Parameters:
-        - process_noise_stddev: Standard deviation of the acceleration noise (affects the process noise covariance Q)
+        `process_noise_stddev`: Standard deviation of the acceleration noise.
     """
 
     def __init__(self, process_noise_stddev: float = 2.0):
         self.process_noise_stddev = process_noise_stddev
+
+        # Measurement and transition matrices
+        self.H = np.eye(2, dtype=np.float64)
+        self.F = np.eye(2, dtype=np.float64)
+
         self.belief = prior_factor(
             np.zeros((2, 1), dtype=np.float64),
             np.eye(2, dtype=np.float64) * 1e4,
@@ -180,19 +219,21 @@ class FactorGraphFilter2D:
 
     @property
     def position(self) -> tuple[float, float]:
-        return float(self.x[0, 0]), float(self.x[1, 0])
+        mean, _ = to_moment(self.belief)
+        return float(mean[0, 0]), float(mean[1, 0])
 
     @property
     def variance(self) -> tuple[float, float]:
-        return float(self.P[0, 0]), float(self.P[1, 1])
+        _, cov = to_moment(self.belief)
+        return float(cov[0, 0]), float(cov[1, 1])
 
     def initialize(self, initial_position: Position, position_stddev: float):
         """
-        Replace the belief with a prior factor at the given position.
+        Replace the belief with a prior factor at `initial_position`.
 
         Parameters:
-            - initial_position: Tuple (x, y) representing the initial position.
-            - position_stddev: Standard deviation of the initial position estimate.
+            `initial_position`: Tuple (x, y) representing the initial position.
+            `position_stddev`: Standard deviation of the initial estimate.
         """
         mean = np.array(initial_position, dtype=np.float64).reshape(2, 1)
         cov = position_stddev**2 * np.eye(2, dtype=np.float64)
@@ -200,17 +241,17 @@ class FactorGraphFilter2D:
 
     def predict(self, dt: float, control_input: Velocity):
         """
-        Advance the belief by one time step, by joining it to a motion factor
-        and marginalizing out the previous position.
+        Advance the belief by joining it to a motion factor and marginalizing
+        out the previous position.
 
         Parameters:
-            - dt: Time step in seconds.
-            - control_input: Tuple (vx, vy) representing the commanded velocity.
+            `dt`: Time step in seconds.
+            `control_input`: Tuple (vx, vy) representing the commanded velocity.
         """
         joint = combine([
             _relabel(self.belief, _PREVIOUS),
             motion_factor(
-                transition_matrix(),
+                self.F,
                 process_noise(dt, self.process_noise_stddev),
                 control_vector(dt, control_input),
                 _PREVIOUS,
@@ -224,14 +265,14 @@ class FactorGraphFilter2D:
         Fold a position measurement into the belief.
 
         Parameters:
-            - position_measurement: Tuple (x, y) representing the measured position.
-            - position_stddev: Standard deviation of the position measurement noise.
+            `position_measurement`: Tuple (x, y) of the measured position.
+            `position_stddev`: Standard deviation of the measurement noise.
         """
         z = np.array(position_measurement, dtype=np.float64).reshape(2, 1)
         self.belief = combine([
             self.belief,
             measurement_factor(
-                measurement_matrix(),
+                self.H,
                 measurement_noise(position_stddev),
                 z,
                 _CURRENT,

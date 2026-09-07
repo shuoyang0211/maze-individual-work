@@ -11,7 +11,6 @@ _AGENT_CLASS_NAMES = {
     "mapping": "MappingAgent",
     "localization": "LocalizationAgent",
     "slam": "SlamAgent",
-    "student": "StudentAgent",
 }
 AGENT_REGISTRY = {
     agent_id: getattr(agents, class_name)
