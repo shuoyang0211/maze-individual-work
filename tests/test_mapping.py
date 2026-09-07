@@ -7,7 +7,7 @@ MIN_FREE_RECALL = 0.60
 MIN_WALL_RECALL = 0.60
 
 
-def test_mapping_recall_benchmark() -> None:
+def test_mapping_recall_benchmark():
     free_recall, wall_recall = mapping_recalls(
         "configs/mapping.yaml",
         MappingAgent,

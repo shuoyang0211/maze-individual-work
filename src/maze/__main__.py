@@ -20,7 +20,7 @@ AGENT_REGISTRY = {
 }
 
 
-def main() -> None:
+def main():
     parser = ArgumentParser()
     parser.add_argument(
         "--config",

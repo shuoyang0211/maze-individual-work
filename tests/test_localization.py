@@ -5,7 +5,7 @@ SEEDS = tuple(range(1))
 MAX_SECONDS = 300.0
 
 
-def test_localization_captures_all_flags() -> None:
+def test_localization_captures_all_flags():
     flag_counts = flag_capture_counts(
         "configs/localization.yaml",
         LocalizationAgent,

@@ -1,65 +1,50 @@
 import numpy as np
 
-from maze.justin_factor_graph import (
-    combine,
-    eliminate,
-    measurement_factor,
-    motion_factor,
-    prior_factor,
-    to_moment,
-)
-from maze.justin_kalman_filter import KalmanFilter2D
+from maze.factor_graph import FactorGraphFilter2D
+from maze.kalman_filter import KalmanFilter2D
+
+PROCESS_NOISE_STDDEV = 2.0
+INITIAL_POSITION_STDDEV = 5.0
+MEASUREMENT_STDDEV = 0.5
+DT = 0.1
+
+CONTROLS = [(1.0, 0.0), (0.5, 0.5), (-1.0, 2.0), (0.0, -1.0), (2.0, 2.0)]
+MEASUREMENTS = [(0.09, 0.02), (0.15, 0.12), (0.02, 0.32), (0.03, 0.22), (0.22, 0.42)]
 
 
-def test_factor_graph_elimination_matches_kalman_filter():
+def test_factor_graph_filter_matches_kalman_filter():
     """
-    Runs a short synthetic trajectory through both `KalmanFilter2D` and the
-    equivalent two-node factor graph (prior on x_prev, motion factor to
-    x_curr, measurement factor on x_curr). Eliminating x_prev should exactly
-    reproduce `predict()`, and folding in the measurement factor should
-    exactly reproduce `update()`.
+    Runs a short synthetic trajectory through both `KalmanFilter2D` and
+    `FactorGraphFilter2D`, which are two implementations of the same model.
+    Eliminating `x_prev` from the two-node graph should reproduce `predict()`,
+    and combining in the measurement factor should reproduce `update()`, so the
+    two filters must agree on both the mean and the covariance at every step.
     """
-    process_noise_stddev = 2.0
-    position_stddev = 5.0
-    measurement_stddev = 0.5
-    dt = 0.1
+    kalman = KalmanFilter2D(process_noise_stddev=PROCESS_NOISE_STDDEV)
+    factor_graph = FactorGraphFilter2D(process_noise_stddev=PROCESS_NOISE_STDDEV)
 
-    kf = KalmanFilter2D(process_noise_stddev=process_noise_stddev)
-    kf.initialize((0.0, 0.0), position_stddev)
+    kalman.initialize((0.0, 0.0), INITIAL_POSITION_STDDEV)
+    factor_graph.initialize((0.0, 0.0), INITIAL_POSITION_STDDEV)
 
-    prior_mean = np.array([[0.0], [0.0]])
-    prior_cov = position_stddev ** 2 * np.eye(2)
+    for step, (velocity, measurement) in enumerate(zip(CONTROLS, MEASUREMENTS)):
+        kalman.predict(DT, velocity)
+        factor_graph.predict(DT, velocity)
+        assert np.allclose(factor_graph.x, kalman.x, atol=1e-6), (
+            f"Predicted means disagree after {step + 1} step(s): "
+            f"factor graph gave {factor_graph.x.ravel()}, Kalman filter gave {kalman.x.ravel()}."
+        )
+        assert np.allclose(factor_graph.P, kalman.P, atol=1e-6), (
+            f"Predicted covariances disagree after {step + 1} step(s): "
+            f"factor graph gave\n{factor_graph.P}\nKalman filter gave\n{kalman.P}"
+        )
 
-    controls = [(1.0, 0.0), (0.5, 0.5), (-1.0, 2.0), (0.0, -1.0), (2.0, 2.0)]
-    measurements = [(0.09, 0.02), (0.15, 0.12), (0.02, 0.32), (0.03, 0.22), (0.22, 0.42)]
-
-    F = kf.F
-    H = kf.H
-    Q = (process_noise_stddev ** 2 * (dt ** 4) / 4.0) * np.eye(2)
-    R = measurement_stddev ** 2 * np.eye(2)
-
-    for velocity, measurement in zip(controls, measurements):
-        u_dt = np.array(velocity, dtype=np.float64).reshape((2, 1)) * dt
-        z = np.array(measurement, dtype=np.float64).reshape((2, 1))
-
-        kf.predict(dt, velocity)
-        kf_predicted_mean, kf_predicted_cov = kf.x.copy(), kf.P.copy()
-        kf.update(measurement, measurement_stddev)
-        kf_updated_mean, kf_updated_cov = kf.x.copy(), kf.P.copy()
-
-        prior = prior_factor(prior_mean, prior_cov, "x_prev")
-        motion = motion_factor(F, Q, u_dt, "x_prev", "x_curr")
-        joint = combine([prior, motion])
-        predictive = eliminate(joint, "x_prev")
-
-        fg_predicted_mean, fg_predicted_cov = to_moment(predictive)
-        assert np.allclose(fg_predicted_mean, kf_predicted_mean, atol=1e-6)
-        assert np.allclose(fg_predicted_cov, kf_predicted_cov, atol=1e-6)
-
-        measurement_potential = measurement_factor(H, R, z, "x_curr")
-        posterior = combine([predictive, measurement_potential])
-        fg_updated_mean, fg_updated_cov = to_moment(posterior)
-        assert np.allclose(fg_updated_mean, kf_updated_mean, atol=1e-6)
-        assert np.allclose(fg_updated_cov, kf_updated_cov, atol=1e-6)
-
-        prior_mean, prior_cov = fg_updated_mean, fg_updated_cov
+        kalman.update(measurement, MEASUREMENT_STDDEV)
+        factor_graph.update(measurement, MEASUREMENT_STDDEV)
+        assert np.allclose(factor_graph.x, kalman.x, atol=1e-6), (
+            f"Updated means disagree after {step + 1} step(s): "
+            f"factor graph gave {factor_graph.x.ravel()}, Kalman filter gave {kalman.x.ravel()}."
+        )
+        assert np.allclose(factor_graph.P, kalman.P, atol=1e-6), (
+            f"Updated covariances disagree after {step + 1} step(s): "
+            f"factor graph gave\n{factor_graph.P}\nKalman filter gave\n{kalman.P}"
+        )
