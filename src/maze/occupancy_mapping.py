@@ -8,38 +8,56 @@ from maze_core import (
 
 from maze.utils import line_between
 
-ASSIGN_THRESHOLD = 0.5
-LOG_ODDS_SCALE = 5.0
 
-
-def update_cell(cell: OccupancyGridCell, confidence: SensorConfidence):
+def update_cell(
+    cell: OccupancyGridCell,
+    confidence: SensorConfidence,
+    log_odds_scale: float,
+    assign_threshold: float,
+):
     """
-    Updates logits for an occupancy grid cell in place, and sets the predicted
-    assignment once a class's probability crosses `ASSIGN_THRESHOLD`.
+    Update an occupancy grid cell in place from one observation.
 
-    The cell's logits should be updated by adding the log-likelihoods computed
-    from the sensor confidence, scaled by `LOG_ODDS_SCALE`. The log-likelihoods
-    should be centered before adding, since the logits are clipped to a fixed
-    range around zero.
+    Note:
+        The cell's logits should be updated by adding the log-likelihood
+        computed from the sensor confidence, scaled by `log_odds_scale`.
+        The log-likelihoods should be centered before adding, since the logits
+        are clipped to a fixed range around zero. The cell's assignment
+        should be updated once the most likely class's probability crosses
+        `assign_threshold`, and reset if no such class satisfies this.
 
     Parameters:
-        `cell`: Occupancy grid cell.
-        `confidence`: Per-class confidences from sensor.
+        `cell`: Mutable occupancy grid cell.
+        `confidence`: Per-class confidences from the sensor.
+        `log_odds_scale`: Scale factor for new log-likelihoods.
+        `assign_threshold`: Probability a class must reach to be assigned.
     """
     raise NotImplementedError
 
 
-def update_grid(grid: OccupancyGrid, raycasts: list[Raycast], position: Position):
+def update_grid(
+    grid: OccupancyGrid,
+    raycasts: list[Raycast],
+    position: Position,
+    log_odds_scale: float,
+    assign_threshold: float,
+):
     """
     Update the occupancy grid in place from a list of range sensor readings.
 
-    The list of cells to update can be computed using `line_between` on the
-    cell at the source position and the end of the raycast. If the ray hits an object, the last cell should be updated via `endpoint_confidence`.
-    Remaining cells along the ray should be updated via `path_confidence`.
+    Note:
+        The list of cells to update can be computed using `line_between` on the
+        cell at the source position and the end of the raycast, which can be
+        inferred from `theta` and `distance`. If the ray hits an object early
+        (i.e., when `endpoint_type` is a free space), the last cell is observed
+        with `endpoint_confidence`, and remaining cells are observed with
+        `path_confidence`.
 
     Parameters:
-        `grid`: A mutable occupancy grid.
-        `raycasts`: A list of range sensor readings.
+        `grid`: Mutable occupancy grid.
+        `raycasts`: List of range sensor readings.
         `position`: Source position.
+        `log_odds_scale`: Scale factor for new log-likelihoods.
+        `assign_threshold`: Probability a class must reach to be assigned.
     """
     raise NotImplementedError

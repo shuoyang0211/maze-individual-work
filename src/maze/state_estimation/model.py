@@ -1,5 +1,3 @@
-"""The linear-Gaussian model shared by both filters in this package."""
-
 import numpy as np
 from maze_core import Velocity
 
@@ -10,7 +8,7 @@ def control_vector(dt: float, control_input: Velocity) -> np.ndarray:
 
     Parameters:
         `dt`: Time step in seconds.
-        `control_input`: Tuple (vx, vy) representing the commanded velocity.
+        `control_input`: Commanded velocity.
 
     Returns:
         The 2x1 displacement over one step.
@@ -18,17 +16,18 @@ def control_vector(dt: float, control_input: Velocity) -> np.ndarray:
     return dt * np.array(control_input, dtype=np.float64).reshape(2, 1)
 
 
-def process_noise(dt: float, process_noise_stddev: float) -> np.ndarray:
+def process_noise(dt: float, acceleration_stddev: float) -> np.ndarray:
     """
     Return the process noise covariance Q for a single time step.
 
-    Q represents acceleration uncertainty. The noise in each axis is
-    independent, so Q is diagonal, and acceleration is integrated twice to
-    reach position, so the variance over one step grows with `dt`^4 / 4.
+    Note:
+        Errors behave like unknown accelerations, and are independent in each axis.
+        Acceleration is integrated twice to reach position, so the variance over
+        one step grows with `dt`^4 / 4.
 
     Parameters:
         `dt`: Time step in seconds.
-        `process_noise_stddev`: Standard deviation of the acceleration noise.
+        `acceleration_stddev`: Standard deviation of unexpected acceleration.
 
     Returns:
         The 2x2 process noise covariance Q.
@@ -40,8 +39,8 @@ def measurement_noise(position_stddev: float) -> np.ndarray:
     """
     Return the measurement noise covariance R for a position observation.
 
-    Observations are isotropic: the same standard deviation in each axis, with
-    no correlation between them.
+    Note:
+        Errors are independent in each axis.
 
     Parameters:
         `position_stddev`: Standard deviation of the position measurement noise.

@@ -6,20 +6,16 @@ from maze.state_estimation.model import control_vector, measurement_noise, proce
 
 class KalmanFilter2D:
     """
-    Constant-velocity 2D Kalman Filter over the position state [x, y]^T, whose
-    covariance starts at 1e4 until `initialize` is called.
-
-    The previous position is carried forward unchanged and the commanded motion
-    enters separately through the control vector, so `F` is the identity; the
-    agent observes its position directly, so `H` is as well. Q and R come from
-    `model.py`, which `FactorGraphFilter2D` also uses — that shared model is
-    what makes the two filters comparable.
+    Constant-velocity 2D Kalman Filter over the position state [x, y]^T.
 
     Parameters:
-        `process_noise_stddev`: Standard deviation of the acceleration noise.
+        `acceleration_stddev`: Standard deviation of unexpected acceleration.
+            Determines how quickly the filter weighs new measurements, by
+            adding uncertainty to the belief. Larger is jumpy and responsive,
+            while smaller is smooth and stubborn.
     """
 
-    def __init__(self, process_noise_stddev: float = 2.0):
+    def __init__(self, acceleration_stddev: float):
         # Estimated state and its covariance
         self.x = np.zeros((2, 1), dtype=np.float64)
         self.P = np.eye(2, dtype=np.float64) * 1e4
@@ -28,7 +24,7 @@ class KalmanFilter2D:
         self.H = np.eye(2, dtype=np.float64)
         self.F = np.eye(2, dtype=np.float64)
 
-        self.process_noise_stddev = process_noise_stddev
+        self.acceleration_stddev = acceleration_stddev
 
     @property
     def position(self) -> tuple[float, float]:
@@ -43,7 +39,7 @@ class KalmanFilter2D:
         Set the belief to `initial_position` with the given uncertainty.
 
         Parameters:
-            `initial_position`: Tuple (x, y) representing the initial position.
+            `initial_position`: Initial position.
             `position_stddev`: Standard deviation of the initial estimate.
         """
         raise NotImplementedError
@@ -54,7 +50,7 @@ class KalmanFilter2D:
 
         Parameters:
             `dt`: Time step in seconds.
-            `control_input`: Tuple (vx, vy) representing the commanded velocity.
+            `control_input`: Commanded velocity.
         """
         raise NotImplementedError
 
@@ -63,7 +59,7 @@ class KalmanFilter2D:
         Fold a position measurement into the belief.
 
         Parameters:
-            `position_measurement`: Tuple (x, y) of the measured position.
+            `position_measurement`: Noisy measured position.
             `position_stddev`: Standard deviation of the measurement noise.
         """
         raise NotImplementedError

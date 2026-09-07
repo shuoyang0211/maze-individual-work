@@ -1,21 +1,13 @@
 """
-A minimal Gaussian factor graph library, and a 2D filter built on top of it.
+A minimal Gaussian factor graph library, with a 2D filter built on top of it.
 
-A `GaussianFactor` is a potential over one or more variables in *canonical*
-(a.k.a. information) form:
+A `GaussianFactor` is a potential over one or more variables:
 
     factor(x) ∝ exp(-1/2 x^T Lambda x + eta^T x)
 
-That parameterization is worth the change of coordinates because it makes the
-two operations this module needs cheap: combining factors that share variables
-is a sum of their padded blocks, and marginalizing a variable out is a Schur
-complement.
-
-`FactorGraphFilter2D` wires those two operations into the interface
-`KalmanFilter2D` exposes, over the same model. Its `predict` is a two-node
-graph over `x_prev` and `x_curr` whose elimination of `x_prev` reproduces the
-Kalman prediction, and its `update` is a single `combine` with the measurement
-likelihood.
+We use the canonical form (or information form) above because combining factors
+that share variables becomes summing their padded blocks, and marginalizing a
+variable out is a Schur complement.
 """
 
 from dataclasses import dataclass, replace
@@ -32,10 +24,9 @@ class GaussianFactor:
     A Gaussian potential in canonical form over the variables in `scope`, each
     of which has `dim` components.
 
-    `Lambda` and `eta` are laid out in scope order: variable `scope[i]` owns
-    rows and columns `i * dim` through `(i + 1) * dim`. Every function here
-    relies on that convention, so address a variable's block with
-    `indices_for` rather than recomputing offsets.
+    Note:
+        `Lambda` and `eta` are laid out in scope order, i.e., `scope[i]` owns
+        rows and columns `i * dim` through `(i + 1) * dim`.
     """
 
     scope: tuple[str, ...]
@@ -45,16 +36,15 @@ class GaussianFactor:
 
     def indices_for(self, *variables: str) -> np.ndarray:
         """
-        Return the row/column indices that `variables` occupy in this factor's
-        `Lambda` and `eta`, concatenated in the order given. Pair with
-        `np.ix_(idx, idx)` to slice a square block out of `Lambda`.
+        Return the row and column indices that `variables` occupy in `Lambda`
+        and `eta`, concatenated in the order given. Pair with `np.ix_(idx, idx)`
+        to slice a square block out of `Lambda`.
 
         Parameters:
-            `variables`: Names of the variables to address, in the order their
-                indices should appear.
+            `variables`: Variables to address.
 
         Returns:
-            The concatenated indices of the requested variables' blocks.
+            The concatenated indices of the requested blocks.
         """
         blocks = []
         for var in variables:
@@ -126,22 +116,22 @@ def combine(factors: list[GaussianFactor]) -> GaussianFactor:
 def motion_factor(F: np.ndarray, Q: np.ndarray, u: np.ndarray, var_prev: str, var_curr: str) -> GaussianFactor:
     """
     Build the joint canonical factor over (`var_prev`, `var_curr`) for the
-    conditional x_curr | x_prev ~ N(F @ x_prev + u, Q), the same motion model
-    `KalmanFilter2D.predict` uses.
+    conditional x_curr | x_prev ~ N(F @ x_prev + u, Q).
 
-    The result has scope (`var_prev`, `var_curr`), so its `Lambda` is
-    `2 * dim` wide with `var_prev` leading. Its `dim` is still the size of one
-    variable, not the width of `Lambda`.
+    Note:
+        The result has scope (`var_prev`, `var_curr`), so its `Lambda` is
+        `2 * dim` wide with `var_prev` leading. Its `dim` is still the size of
+        one variable, not the width of `Lambda`.
 
     Parameters:
         `F`: Transition matrix.
         `Q`: Process noise covariance.
-        `u`: Column vector of the control displacement over the step.
-        `var_prev`: Name of the variable before the step.
-        `var_curr`: Name of the variable after the step.
+        `u`: Control displacement over the step.
+        `var_prev`: Variable before the step.
+        `var_curr`: Variable after the step.
 
     Returns:
-        A factor over both variables, coupled through the motion model.
+        A factor over both variables.
     """
     raise NotImplementedError
 
@@ -150,12 +140,13 @@ def eliminate(joint: GaussianFactor, var: str) -> GaussianFactor:
     """
     Marginalize `var` out of `joint` via the Schur complement.
 
-    `joint.indices_for` gives you the eliminated and surviving blocks. The
-    result keeps the surviving variables in their original scope order.
+    Note:
+        `joint.indices_for` gives you the eliminated and surviving blocks,
+        with the latter in their original scope order.
 
     Parameters:
         `joint`: Factor to marginalize.
-        `var`: Name of the variable to remove.
+        `var`: Variable to remove.
 
     Returns:
         A factor over `joint.scope` without `var`.
@@ -178,24 +169,27 @@ def _relabel(factor: GaussianFactor, var: str) -> GaussianFactor:
 
 class FactorGraphFilter2D:
     """
-    Constant-velocity 2D filter exposing the same interface as
-    `KalmanFilter2D`, implemented by building a small factor graph each step
-    and eliminating it. The belief is carried in canonical form rather than as
-    `x` and `P`.
+    Constant-velocity 2D filter exposing the same interface as `KalmanFilter2D`,
+    implemented by building a small factor graph each step and eliminating it.
+    The belief is carried in canonical form rather than as `x` and `P`.
 
-    `F` and `H` match `KalmanFilter2D`, and Q and R come from the same
-    `model.py`, so a disagreement between the two filters points at your
-    `motion_factor` or `eliminate`, not at the model.
-    Canonical form does invert Q, which makes this the more numerically
-    delicate of the two: at very small `dt` the filters can drift apart by a
-    small amount of floating point error even when both are correct.
+    Note:
+        `F` and `H` match `KalmanFilter2D`, and Q and R come from the same
+        `model.py`, so a disagreement between the two filters points at your
+        `motion_factor` or `eliminate`, not at the model.
+        Canonical form does invert Q, which makes this the more numerically
+        delicate of the two: at very small `dt` the filters can drift apart by
+        a small amount of floating point error even when both are correct.
 
     Parameters:
-        `process_noise_stddev`: Standard deviation of the acceleration noise.
+        `acceleration_stddev`: Standard deviation of unexpected acceleration.
+            Determines how quickly the filter weighs new measurements, by
+            adding uncertainty to the belief. Larger is jumpy and responsive,
+            while smaller is smooth and stubborn.
     """
 
-    def __init__(self, process_noise_stddev: float = 2.0):
-        self.process_noise_stddev = process_noise_stddev
+    def __init__(self, acceleration_stddev: float):
+        self.acceleration_stddev = acceleration_stddev
 
         # Measurement and transition matrices
         self.H = np.eye(2, dtype=np.float64)
@@ -232,7 +226,7 @@ class FactorGraphFilter2D:
         Replace the belief with a prior factor at `initial_position`.
 
         Parameters:
-            `initial_position`: Tuple (x, y) representing the initial position.
+            `initial_position`: Initial position.
             `position_stddev`: Standard deviation of the initial estimate.
         """
         mean = np.array(initial_position, dtype=np.float64).reshape(2, 1)
@@ -246,13 +240,13 @@ class FactorGraphFilter2D:
 
         Parameters:
             `dt`: Time step in seconds.
-            `control_input`: Tuple (vx, vy) representing the commanded velocity.
+            `control_input`: Commanded velocity.
         """
         joint = combine([
             _relabel(self.belief, _PREVIOUS),
             motion_factor(
                 self.F,
-                process_noise(dt, self.process_noise_stddev),
+                process_noise(dt, self.acceleration_stddev),
                 control_vector(dt, control_input),
                 _PREVIOUS,
                 _CURRENT,
@@ -265,7 +259,7 @@ class FactorGraphFilter2D:
         Fold a position measurement into the belief.
 
         Parameters:
-            `position_measurement`: Tuple (x, y) of the measured position.
+            `position_measurement`: Noisy measured position.
             `position_stddev`: Standard deviation of the measurement noise.
         """
         z = np.array(position_measurement, dtype=np.float64).reshape(2, 1)
