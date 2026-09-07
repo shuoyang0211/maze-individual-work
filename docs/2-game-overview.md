@@ -13,51 +13,47 @@
 
 <br>
 
-In this game, the world is represented by a discrete grid of tiles, which are zero-indexed with the origin in the top-left corner. For example, in the following grid, the agent is located at `(7, 16)`. Each world is generated according to a YAML in `configs/`, which specifies the world's dimensions and uses a random seed to place agents and populate the world with walls and goblets. You can check out `configs/default.yaml` to get a sense for how worlds are generated.
+In this game, you'll be piloting an agent to capture flags in a *continuous* maze. Unlike in your other assignments this semester, your agent will not have access to perfect information about the environment. Instead, it must *perceive* its surroundings through noisy sensor data. Each maze is generated according to a YAML in `configs/`, which specifies the agent's attributes, sensor parameters, and knobs for procedural maze generation. You can check out `configs/default.yaml` to get a sense for how mazes are generated.
+
+<br>
+
+## Maze Structure
+
+Each world is a rectangular arena enclosed by walls, with flags and capture points scattered throughout the maze. Note that the origin is placed in the center of the world, with `+x` pointing to the right of the screen and `+y` pointing down. Because the world is continuous, you will have to maintain an **occupancy grid**, which acts as your agent's discrete approximation of the world.
+
+In particular, each entry in the grid stores confidence values for that cell being a free space, a wall, a flag, or a capture point. The occupancy grid begins completely empty, but over time, your agent should refine its occupancy grid into an accurate map of explored areas. You can index it via `grid[col, row]` or `grid[(col, row)]`, with the cell at `(0, 0)` being in the upper-left corner. In the GUI, you can also visualize your agent's computed occupancy grid by pressing `C`.
 
 <figure style="text-align: center;">
-    <img src="./assets/world_structure.png" alt="The agent is shown in the default config." width="600">
+    <img src="./assets/maze_structure.png" alt="The agent is shown in the default maze." width="600">
     <figcaption style="font-style: italic;">
-        The agent is represented by a red square. Walls are gray squares, and goblets are yellow and orange circles.
+        The agent is represented by a red square. Walls are shown as dark blue, while flags and capture points are given in orange and yellow, respectively.
     </figcaption>
 </figure>
 
 <br>
 
-## Agent Movement
+## Noisy Sensors
 
-To control the agent, you will provide a *policy* which specifies, for each position on the grid, the action that your agent will select. These actions are `Action.Up`, `Action.Right`, `Action.Down`, and `Action.Left`, which attempt to move the agent in the corresponding direction. In game, you'll be able to visualize your policy as an arrow field by pressing `P`,
-
-But there's a catch! Unlike in previous assignments, your agent's intended action will not always be the action it actually takes. Instead, the transition function itself is stochastic in the following way. Each world's config file specifies a vector `[p_intended, p_right, p_back, p_left]` of transition probabilities, which are non-negative real numbers that sum to $1$. On each turn, your agent will:
-
-- take the intended action with probability `p_intended`,
-- slip one step clockwise with probability `p_right`,
-- slip two steps clockwise, or backwards, with probability `p_back`,
-- and slip three steps clockwise with probability `p_left`.
-
-For example, if the transition is `[0.9, 0.0, 0.0, 0.1]`, then an agent that always chooses right will still randomly move up!
+Your agent will not necessarily know its exact location, nor will it have fully accurate information about its environment. Stated precisely, your agent will receive noisy observations which deviate from its true position. Moreover, the environment will only expose limited information through **raycasts**, which act as range sensor readings similar to LiDAR. These are beams of light, equally spaced around the agent, which provide noisy ray-based observations to nearby objects.
 
 <figure style="text-align: center;">
-    <img src="./assets/agent_movement.webp" alt="The policy field shows a rightward policy everywhere, but the agent moves up, missing two goblets." width="600">
+    <img src="./assets/noisy_sensors.png" alt="The agent's occupancy grid is being filled in." width="600">
     <figcaption style="font-style: italic;">
-        The adventurer will encounter far, out-of-distribution lands.
+        The agent is represented by a red square. Walls are shown as dark blue, while flags and capture points are given in orange and yellow, respectively.
     </figcaption>
 </figure>
 
 <br>
 
-## Collecting Rewards
+## Capturing the Flag
 
-Finally, the world is populated with a set of goblets, each of which has an associated reward. Some goblets are made of fool's gold (orange) and give the adventurer zero or negative reward, while real goblets are made of real gold (yellow) and give the adventurer positive rewards. More precisely, each goblet has a reward `r`, which is an integer drawn uniformly between `-r_max` and `r_max`.  
+To control the agent, you will provide a **policy**, which periodically observes the environment and returns an action. Like an actual robot, the robot's observations and policy are tied to a discrete clock, while the actual environment runs continuously (or in this case, at 60 frames per second). At each time step, the agent receives a `GameState` and must return one of the following.
 
-Once the adventurer transitions into a cell containing a goblet, it immediately receives the associated reward and leaves to go cash in its prize, ending the game. We can thus formulate each world as a Markov decision process, where the state space is given by the position of the agent, and the action space, transition function, and rewards are defined as above.
+- `Action.Move(velocity)` sets the agent's velocity until the next `Move` action.
+- `Action.PickupFlag()` makes the agent try to pick up a flag, holding at most one flag at a time.
+- `Action.DropFlag()` makes the agent drop any flags being held.
 
-<figure style="text-align: center;">
-    <img src="./assets/collecting_rewards.webp" alt="The agent collects a piece of true gold, ending the game." width="600">
-    <figcaption style="font-style: italic;">
-        “You should enjoy the little detours to the fullest. Because that's where you'll find the things more important than what you want.” —Ging Freecss
-    </figcaption>
-</figure>
+ Note that the agent must be within a certain radius of each flag and capture point to interact. Your agent's goal is now to explore the world around it, to discover itself, and to capture all the flags.
 
 <br>
 

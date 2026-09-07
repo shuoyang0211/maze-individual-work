@@ -4,11 +4,15 @@ agent:
     policy_hz: 60.0
     position_stddev: 10.0
     range_stddev: 0.5
+    raycast_count: 16
+    raycast_max_distance: 20.0
     occupancy_grid_cell_size: 1.0
 
 flags:
     flag_count: 2
     capture_point_count: 10
+    flag_radius: 3.0
+    capture_point_radius: 3.0
 
 maze_generation:
     seed: 0

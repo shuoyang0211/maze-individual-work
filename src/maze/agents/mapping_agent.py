@@ -2,13 +2,13 @@ from maze_core import (
     Action,
     GameState,
     OccupancyGrid,
-    OccupancyGridEntry,
+    OccupancyGridCell,
     Position,
     SensorConfidence,
 )
 
 
-def update_occupancy_grid_entry(cell: OccupancyGridEntry, confidence: SensorConfidence):
+def update_occupancy_grid_entry(cell: OccupancyGridCell, confidence: SensorConfidence):
     """
     Updates the passed in occupancy grid entry in place using the passed in confidence.
     Sets the predicted assignment of the cell when the corresponding probability crosses a user-defined threshold.
@@ -18,7 +18,7 @@ def update_occupancy_grid_entry(cell: OccupancyGridEntry, confidence: SensorConf
     the negative end of this range, you should center the log-likelihoods before modifying the logits.
 
     Parameters:
-        cell (OccupancyGridEntry): The occupancy grid entry to update.
+        cell (OccupancyGridCell): The occupancy grid entry to update.
         confidence (SensorConfidence): The confidence to use for the update.
     """
     raise NotImplementedError

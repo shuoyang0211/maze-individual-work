@@ -8,7 +8,7 @@
 
 # Comments
 
-| [`GameState`](#gamestate) | [`AgentState`](#agentstate) | [`HitInfo`](#hitinfo) | [`SensorConfidence`](#sensorconfidence) | [`OccupancyGrid`](#occupancygrid) | [`OccupancyGridEntry`](#occupancygridentry) | [`Action`](#action) | [`EntityType`](#entitytype) |
+| [`GameState`](#gamestate) | [`AgentState`](#agentstate) | [`Raycast`](#raycast) | [`SensorConfidence`](#sensorconfidence) | [`OccupancyGrid`](#occupancygrid) | [`OccupancyGridCell`](#occupancygridcell) | [`Action`](#action) | [`EntityType`](#entitytype) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 <br>
@@ -63,7 +63,7 @@ class AgentState:
         """
 
     @property
-    def raycasts(self) -> list[HitInfo]:
+    def raycasts(self) -> list[Raycast]:
         r"""
         Returns a list of range-sensor readings.
         """
@@ -81,10 +81,10 @@ class AgentState:
         """
 ```
 
-## `HitInfo`
+## `Raycast`
 
 ```python
-class HitInfo:
+class Raycast:
     r"""
     Represents one range-sensor reading from the agent's current position.
     """
@@ -121,7 +121,7 @@ class HitInfo:
         """
 
     @property
-    def free_confidence(self) -> SensorConfidence:
+    def path_confidence(self) -> SensorConfidence:
         r"""
         Returns the per-class confidence for cells before the endpoint.
         """
@@ -209,10 +209,10 @@ class OccupancyGrid:
         """
 ```
 
-## `OccupancyGridEntry`
+## `OccupancyGridCell`
 
 ```python
-class OccupancyGridEntry:
+class OccupancyGridCell:
     r"""
     Represents a mutable occupancy-grid cell.
     """
