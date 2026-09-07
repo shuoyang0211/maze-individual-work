@@ -4,11 +4,12 @@ def line_between(start: tuple[int, int], end: tuple[int, int]) -> list[tuple[int
     Computes the cells that a line from start to end would pass through the grid.
 
     Parameters:
-        start (tuple[int, int]): The starting grid cell (x, y).
-        end (tuple[int, int]): The ending grid cell (x, y).
+        `start`: The starting grid cell.
+        `end: The ending grid cell.
 
     Returns:
-        list[tuple[int, int]]: A list of grid cells (x, y) that the line passes through including start and end.
+        A list of grid cells that the line passes through, including
+        start and end.
     """
     x0, y0 = start
     x1, y1 = end

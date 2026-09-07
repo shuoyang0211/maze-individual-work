@@ -1,7 +1,7 @@
 from maze_core import Action, GameState, OccupancyGrid, Position
 
-from maze.kalman_filter import KalmanFilter2D
 from maze.occupancy_mapping import update_grid
+from maze.state_estimation import KalmanFilter2D
 
 
 class SlamAgent:

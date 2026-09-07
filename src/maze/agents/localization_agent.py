@@ -1,6 +1,6 @@
 from maze_core import Action, GameState, OccupancyGrid, Position
 
-from maze.kalman_filter import KalmanFilter2D
+from maze.state_estimation import KalmanFilter2D
 
 
 class LocalizationAgent:

@@ -23,7 +23,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 from maze_core import Position, Velocity
 
-from maze.kalman_filter import control_vector, measurement_noise, process_noise
+from maze.state_estimation.model import control_vector, measurement_noise, process_noise
 
 
 @dataclass
@@ -184,8 +184,8 @@ class FactorGraphFilter2D:
     `x` and `P`.
 
     `F` and `H` match `KalmanFilter2D`, and Q and R come from the same
-    `process_noise` and `measurement_noise`, so a disagreement between the two
-    filters points at your `motion_factor` or `eliminate`, not at the model.
+    `model.py`, so a disagreement between the two filters points at your
+    `motion_factor` or `eliminate`, not at the model.
     Canonical form does invert Q, which makes this the more numerically
     delicate of the two: at very small `dt` the filters can drift apart by a
     small amount of floating point error even when both are correct.
