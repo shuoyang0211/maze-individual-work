@@ -23,6 +23,10 @@ def update_occupancy_grid_entry(cell: OccupancyGridCell, confidence: SensorConfi
     """
     raise NotImplementedError
 
+
+def update_occupancy_grid(self, game_state: GameState, occupancy_grid: OccupancyGrid):
+    raise NotImplementedError
+
 class MappingAgent:
     def __init__(self) -> None:
         self._name = "Mapping Agent"
@@ -35,9 +39,6 @@ class MappingAgent:
     @property
     def estimated_position(self) -> Position:
         return self._position
-
-    def update_occupancy_grid(self, game_state: GameState, occupancy_grid: OccupancyGrid):
-        raise NotImplementedError
 
     def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid, dt: float) -> Action:
         self._position = game_state.agent.position

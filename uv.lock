@@ -25,9 +25,9 @@ name = "maze-core"
 version = "0.2.0"
 source = { registry = "https://harvard-cs182-f25.github.io/maze/wheels/" }
 wheels = [
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:66629f9d4206964c8f7e190f11d8a0a06da1a3985c0e5286cedefd4fb00005e5" },
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9803c01a8c57217e1d1f8ef2eb01689bc39eea465b79d4f656d279dfeef2e437" },
-    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-win_amd64.whl", hash = "sha256:5225083bbe2fe932e23064be6d861ee5e89f7c7bb8f311a0d007e3f4502d0a56" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:159fc25ed867eb3e9a0bbb968e6ec54fad88cb289c3e5e870c69e4cbca00df82" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:473880585b849a87ad36a89588ac1cacc385adce87ba9e0aca32304774f6a204" },
+    { url = "https://harvard-cs182-f25.github.io/maze/wheels/maze-core/maze_core-0.2.0-cp310-abi3-win_amd64.whl", hash = "sha256:c9ab8375197009eabe56f5d21954b4a3fa71989a255dfc3c69c0a295a44723c0" },
 ]
 
 [[package]]
