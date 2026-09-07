@@ -16,5 +16,4 @@ class MappingAgent:
         raise NotImplementedError
 
     def get_action(self, game_state: GameState, occupancy_grid: OccupancyGrid, dt: float) -> Action:
-        self._position = game_state.agent.position
         raise NotImplementedError
