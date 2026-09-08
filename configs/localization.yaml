@@ -11,8 +11,8 @@ agent:
 flags:
     flag_count: 2
     capture_point_count: 10
-    flag_radius: 3.0
-    capture_point_radius: 3.0
+    pickup_radius: 3.0
+    capture_radius: 3.0
 
 maze_generation:
     seed: 0

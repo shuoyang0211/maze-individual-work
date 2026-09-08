@@ -75,9 +75,15 @@ class AgentState:
         """
 
     @property
+    def range_stddev(self) -> float:
+        r"""
+        Returns the standard deviation of the noise on each raycast distance.
+        """
+
+    @property
     def raycasts(self) -> list[Raycast]:
         r"""
-        Returns a list of range-sensor readings.
+        Returns the range-sensor readings, in increasing order of `theta`.
         """
 
     @property
@@ -104,7 +110,7 @@ class Raycast:
     @property
     def theta(self) -> float:
         r"""
-        Returns the ray angle in radians clockwise from +x.
+        Returns the ray angle in radians, measured from `+x` towards `+y`.
         """
 
     @property
@@ -117,7 +123,7 @@ class Raycast:
     @property
     def distance(self) -> float:
         r"""
-        Returns the reported distance, including range noise.
+        Returns the reported distance, including range noise for hits.
         """
 
     @property
@@ -210,12 +216,12 @@ class OccupancyGrid:
         Returns `(columns, rows)`.
         """
 
-    def cell_at(self, x: float, y: float) -> tuple[int, int] | None:
+    def world_to_cell(self, x: float, y: float) -> tuple[int, int] | None:
         r"""
         Returns the `(column, row)` containing `(x, y)`, or `None` if outside grid.
         """
 
-    def world_center(self, column: int, row: int) -> tuple[float, float] | None:
+    def cell_to_world(self, column: int, row: int) -> tuple[float, float] | None:
         r"""
         Returns the center of cell `(column, row)`, or `None` if outside grid.
         """
@@ -273,9 +279,7 @@ class Action:
 
     class Move(Action):
         r"""
-        Moves the agent at `velocity`, capped to its `max_speed`.
-
-        Example: `Action.Move(velocity=(1.0, 0.0))`.
+        Sets the `velocity`, capped to `max_speed`, until the next `Move`.
         """
 
         @property
@@ -284,15 +288,12 @@ class Action:
     class PickupFlag(Action):
         r"""
         Picks up a flag, if one is on the ground within reach.
-
-        Example: `Action.PickupFlag()`.
         """
 
     class DropFlag(Action):
         r"""
-        Drops the flag the agent is carrying, capturing it if a capture point is within reach.
-
-        Example: `Action.DropFlag()`.
+        Drops the flag the agent is carrying, capturing it if a capture point
+        is within reach.
         """
 ```
 

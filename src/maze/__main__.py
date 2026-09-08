@@ -62,9 +62,7 @@ def main():
     if args.seed is not None:
         if not 0 <= args.seed <= 0xFFFFFFFF:
             parser.error("--seed must fit in an unsigned 32-bit integer")
-        maze_generation = config.maze_generation
-        maze_generation.seed = args.seed
-        config.maze_generation = maze_generation
+        config.seed = args.seed
     if args.teleop:
         config.teleop = True
 

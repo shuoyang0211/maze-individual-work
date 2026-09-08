@@ -29,7 +29,7 @@ This repository contains a couple major directories of interest.
 
 ### `configs/`
 
-In this assignment, worlds are generated according to config YAML files, which specify the attributes of the agent and its sensors, parameters for procedural maze generation, and some GUI settings. We encourage you to inspect the default config and experiment with your own configs.
+In this assignment, worlds are generated according to config YAML files, which specify the attributes of the agent and its sensors, parameters for procedural maze generation, and some GUI settings. Of most interest for this assignment are `localization.yaml`, `mapping.yaml`, and `slam.yaml`. Feel free to copy and modify these files as you work through the assignment! In particular, you may want to change the seed to generate a new maze or play around with the sensor parameters! As a baseline, we will benchmark your agents on the configs provided.
 
 ### `docs/`
 
@@ -40,7 +40,8 @@ In addition to the files in this `README`, we've provided a few handouts for you
 
 ### `src/`
 
-All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping in `agents/`, along with two probabilistic models in `state_estimation/`. When designing your agents, you'll want to make use of the helpers in `utils.py`. We encourage you to create any other files, functions, and methods you need!
+All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping in `agents/`.
+In the individual assignment, you'll also be working on two probabilistic models in `state_estimation/`, and in the group assignment, you'll be implementing a few helpers in `occupancy_mapping/`. We encourage you to create any other files, functions, and methods you need!
 
 ### `tests/`
 

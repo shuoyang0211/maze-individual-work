@@ -56,14 +56,14 @@ Once your factor graph works, eliminating `x_prev` should reproduce your Kalman 
 
 <br>
 
-## Task 3: Localization
+## Task 3: A localization agent
 
-It's time to implement an agent! Your first agent in [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py) will have access to a prefilled occupancy grid, meaning your agent only needs to accurately track its own position. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle. Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path.
+It's time to implement an agent! Your first agent is [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py). Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle. Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path.
 
 1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
 2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
 
-With access to the true underlying occupancy grid in `configs/localization.yaml`, your goal is now to plan a route to capture every flag in the maze. You might find the estimated position drifting due to walls blocking your true velocity. You can experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration. Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.
+Note that your agent has access to the true occupancy grid in `configs/localization.yaml`. Your goal is now to plan a route to capture every flag in the maze. You can experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration (e.g., due to walls). Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.
 
 > [!TIP]
 > There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?)

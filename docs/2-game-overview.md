@@ -47,13 +47,15 @@ Your agent will not necessarily know its exact location, nor will it have fully 
 
 ## Capturing the Flag
 
-To control the agent, you will provide a **policy**, which periodically observes the environment and returns an action. Like an actual robot, the robot's observations and policy are tied to a discrete clock, set by `agent.policy_hz`, while the actual environment runs continuously (or in this case, at 60 simulation ticks per second). At each time step, the agent receives a `GameState` and the simulated time `dt` since the previous one, and it must return one of the following.
+To control the agent, you will provide a **policy**, which periodically observes the environment and returns an action. Like an actual robot, the robot's observations and policy are tied to a discrete clock, set by `agent.policy_hz`, while the actual environment runs continuously.
+
+More precisely, the game runs at 60 simulation ticks per second. At each policy call, the agent receives the current `GameState` and the simulated time `dt` since the previous one. (Note that the GUI may render more slowly since the game has to wait for the policy, which might take longer than 60 frames per second.) Then, it must return one of the following actions.
 
 - `Action.Move(velocity)` sets the agent's velocity until the next `Move` action.
 - `Action.PickupFlag()` tries to pick up a flag, holding at most one flag at a time.
 - `Action.DropFlag()` drops the flag the agent is holding.
 
- Note that the agent must be within the interaction radius of a flag to pick it up, and a flag must be dropped within the interaction radius of a capture point to be captured. Your agent's goal is now to explore the world around it, to localize itself, and to capture all the flags.
+The agent must be within the interaction radius of a flag to pick it up, and likewise a flag must be dropped within the interaction radius of a capture point for the capture to occur. Your agent's goal is now to explore the world around it, to localize itself, and to capture all the flags.
 
 <figure style="text-align: center;">
     <img src="./assets/capturing_the_flag.webp" alt="The agent picks up a flag and drops it at a capture point." width="600">

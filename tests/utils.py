@@ -25,9 +25,7 @@ def game_loop(
     """
     config = parse_config(str(filename))
     if maze_seed is not None:
-        maze_generation = config.maze_generation
-        maze_generation.seed = maze_seed
-        config.maze_generation = maze_generation
+        config.seed = maze_seed
     agent = agent_class()
     result = run_headless(config=config, policy=agent, max_seconds=max_seconds)
     if result.policy_error is not None:
@@ -71,7 +69,7 @@ def _run_localization_trial(
     args: tuple[str | Path, type[Any], float, int],
 ) -> tuple[int, int, int]:
     result = game_loop(*args)
-    return args[-1], result.flags_captured, result.total_flags
+    return args[-1], result.captured_flags, result.total_flags
 
 
 def flag_capture_counts(
@@ -94,7 +92,7 @@ def _run_slam_trial(
     args: tuple[str | Path, type[Any], float, int],
 ) -> tuple[int, int, int, float]:
     result = game_loop(*args)
-    return args[-1], result.flags_captured, result.total_flags, result.final_mapping_accuracy
+    return args[-1], result.captured_flags, result.total_flags, result.mapping_accuracy
 
 
 def slam_results(
