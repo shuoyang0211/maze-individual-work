@@ -40,7 +40,7 @@ In addition to the files in this `README`, we've provided a few handouts for you
 
 ### `src/`
 
-All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping, along with two probabilistic models in the individual assignment. When designing your agents, you'll also want to make use of the helpers in `utils.py`. We encourage you to create any other files, functions, and methods you need!
+All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping in `agents/`, along with two probabilistic models in `state_estimation/`. When designing your agents, you'll want to make use of the helpers in `utils.py`. We encourage you to create any other files, functions, and methods you need!
 
 ### `tests/`
 
