@@ -6,7 +6,7 @@ from maze_core import (
     SensorConfidence,
 )
 
-from maze.utils import line_between
+from maze.mapping.utils import line_between
 
 
 def update_cell(
@@ -49,7 +49,7 @@ def update_grid(
         The list of cells to update can be computed using `line_between` on the
         cell at the source position and the end of the raycast, which can be
         inferred from `theta` and `distance`. If the ray hits an object early
-        (i.e., when `endpoint_type` is a free space), the last cell is observed
+        (i.e., when `endpoint_type` is not `Free`), the last cell is observed
         with `endpoint_confidence`, and remaining cells are observed with
         `path_confidence`.
 

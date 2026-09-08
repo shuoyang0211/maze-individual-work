@@ -5,7 +5,7 @@ def line_between(start: tuple[int, int], end: tuple[int, int]) -> list[tuple[int
 
     Parameters:
         `start`: The starting grid cell.
-        `end: The ending grid cell.
+        `end`: The ending grid cell.
 
     Returns:
         A list of grid cells that the line passes through, including

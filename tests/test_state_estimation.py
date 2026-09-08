@@ -11,7 +11,7 @@ CONTROLS = [(1.0, 0.0), (0.5, 0.5), (-1.0, 2.0), (0.0, -1.0), (2.0, 2.0)]
 MEASUREMENTS = [(0.09, 0.02), (0.15, 0.12), (0.02, 0.32), (0.03, 0.22), (0.22, 0.42)]
 
 
-def test_factor_graph_filter_matches_kalman_filter():
+def test_filter_equivalence():
     """
     Runs a short synthetic trajectory through both `KalmanFilter2D` and
     `FactorGraphFilter2D`, which are two implementations of the same model.

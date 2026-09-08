@@ -25,7 +25,9 @@ def game_loop(
     """
     config = parse_config(str(filename))
     if maze_seed is not None:
-        config.maze_generation.seed = maze_seed
+        maze_generation = config.maze_generation
+        maze_generation.seed = maze_seed
+        config.maze_generation = maze_generation
     agent = agent_class()
     result = run_headless(config=config, policy=agent, max_seconds=max_seconds)
     if result.policy_error is not None:
@@ -86,3 +88,26 @@ def flag_capture_counts(
     trials = [(filename, agent_class, max_seconds, seed) for seed in seeds]
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         return list(executor.map(_run_localization_trial, trials, chunksize=1))
+
+
+def _run_slam_trial(
+    args: tuple[str | Path, type[Any], float, int],
+) -> tuple[int, int, int, float]:
+    result = game_loop(*args)
+    return args[-1], result.flags_captured, result.total_flags, result.final_mapping_accuracy
+
+
+def slam_results(
+    filename: str | Path,
+    agent_class: type[Any],
+    max_seconds: float,
+    seeds: Sequence[int],
+    max_workers: int = 8,
+) -> list[tuple[int, int, int, float]]:
+    """Return ``(seed, captured, total, mapping_accuracy)`` for each fixed seed."""
+    if not seeds:
+        raise ValueError("seeds must not be empty")
+
+    trials = [(filename, agent_class, max_seconds, seed) for seed in seeds]
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        return list(executor.map(_run_slam_trial, trials, chunksize=1))

@@ -40,6 +40,18 @@ class GameState:
         r"""
         Returns the number of flags delivered to capture points.
         """
+
+    @property
+    def world_width(self) -> float:
+        r"""
+        Returns the width of the maze in world units.
+        """
+
+    @property
+    def world_height(self) -> float:
+        r"""
+        Returns the height of the maze in world units.
+        """
 ```
 
 ## `AgentState`

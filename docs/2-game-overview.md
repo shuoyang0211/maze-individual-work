@@ -21,7 +21,7 @@ In this game, you'll be piloting an agent to capture flags in a *continuous* maz
 
 Each world is a rectangular arena enclosed by walls, with flags and capture points scattered throughout the maze. Note that the origin is placed in the center of the world, with `+x` pointing to the right of the screen and `+y` pointing down. Because the world is continuous, you will have to maintain an **occupancy grid**, which acts as your agent's discrete approximation of the world.
 
-In particular, each entry in the grid stores log-odds for that cell being a free space, a wall, a flag, or a capture point. The occupancy grid begins completely empty, but over time, your agent should refine its occupancy grid into an accurate map of explored areas. You can index it via `grid[col, row]` or `grid[(col, row)]`, with the cell at `(0, 0)` being in the upper-left corner. In the GUI, you can also visualize your agent's computed occupancy grid by pressing `C`.
+In particular, each entry in the grid stores softmax logits for that cell being a free space, a wall, a flag, or a capture point. The occupancy grid begins completely empty, but over time, your agent should refine its occupancy grid into an accurate map of explored areas. You can index it via `grid[col, row]` or `grid[(col, row)]`, with the cell at `(0, 0)` being in the upper-left corner. In the GUI, you can also visualize your agent's computed occupancy grid by pressing `C`.
 
 <figure style="text-align: center;">
     <img src="./assets/maze_structure.png" alt="The agent is shown in the default maze." width="600">

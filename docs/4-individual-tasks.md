@@ -38,23 +38,12 @@ Now, you will implement a two-dimensional Kalman filter, which recursively track
 - `predict` uses the agent's previous state and control input to predict the new mean position, propagates the covariance according to the motion model, and adds process noise to account for uncertainty in the motion dynamics.
 - `update` takes a new noisy measurement, computes the Kalman gain to determine how much to trust the new measurement, and refines the estimated state and covariance.
 
-<br>
-
-## Task 2: Localization
-
-It's time to implement an agent! Your first agent in [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py) will have access to a prefilled occupancy grid, meaning your agent only needs to accurately track its own position. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle.
-
-1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
-2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
-
-Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path. With access to the true underlying occupancy grid in `configs/localization.yaml`, your goal is to plan a route to capture every flag in the maze. You may need to experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected changes in velocity.
-
 > [!TIP]
-> There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?)
+> If you want to see your Kalman filter in action before implementing a factor graph, you might want to get a start on Task 3 instead.
 
 <br>
 
-## Task 3: Factor graph elimination
+## Task 2: Factor graph elimination
 
 Your Kalman filter's recursive update is a special case of a much more general idea: representing a probabilistic estimation problem as a *factor graph* and running *variable elimination* on it. A factor graph represents a joint distribution as a graph on *variables*, which are quantities we don't know, connected via *factors*, which are *potentials* that constrain those variables (e.g. a prior belief, a motion model, or a measurement model). Rather than a mean and covariance, the belief is now carried as a Gaussian potential over the variables.
 
@@ -64,6 +53,20 @@ Your task is to build a two-node factor graph over the agent's previous position
 - `eliminate` marginalizes a variable out of a joint canonical factor, returning the resulting factor over the remaining variables.
 
 Once your factor graph works, eliminating `x_prev` should reproduce your Kalman filter's `predict` step exactly, and combining the result with a `measurement_factor` should reproduce your `update` step exactly. We've wired this up as a `FactorGraphFilter2D`, and you can run `tests/test_state_estimation.py` to check that it gives the same behavior as your `KalmanFilter2D`.
+
+<br>
+
+## Task 3: Localization
+
+It's time to implement an agent! Your first agent in [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py) will have access to a prefilled occupancy grid, meaning your agent only needs to accurately track its own position. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle. Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path.
+
+1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
+2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
+
+With access to the true underlying occupancy grid in `configs/localization.yaml`, your goal is now to plan a route to capture every flag in the maze. You might find the estimated position drifting due to walls blocking your true velocity. You can experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration. Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.
+
+> [!TIP]
+> There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?)
 
 <br>
 

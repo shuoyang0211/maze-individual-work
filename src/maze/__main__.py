@@ -86,5 +86,6 @@ def main():
         print(f"Headless evaluation for up to {headless_seconds:g} simulated seconds")
         print(run_headless(config=config, policy=policy, max_seconds=headless_seconds))
 
+
 if __name__ == "__main__":
     main()

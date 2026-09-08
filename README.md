@@ -44,7 +44,7 @@ All code that you will be responsible for belongs here. In particular, you will 
 
 ### `tests/`
 
-We've provided a few tests which will benchmark the performance of your localization and mapping agents. You can play around with the number of runs and the maximum allotted time, which may be useful if your agents have non-deterministic behavior. For the individual assignment, we've also included a test which checks the equivalence of your Kalman filter and factor graph elimination implementations.
+We've provided a few tests which will benchmark the performance of your localization and mapping agents. You can play around with the number of runs and the maximum allotted time, which may be useful if your agents have non-deterministic behavior. Note that these tests may still take a few minutes. For the individual assignment, we've also included a test which checks the equivalence of your Kalman filter and factor graph elimination implementations.
 
 <br>
 
