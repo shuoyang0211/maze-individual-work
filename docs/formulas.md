@@ -42,10 +42,10 @@ x_k = F x_{k-1} + u_k + w_k, \qquad w_k \sim \mathcal{N}(0, Q),
 $$
 
 $$
-z_k = H x_k + v_k, \qquad v_k \sim \mathcal{N}(0, R).
+z_k = H x_k + v_k, \qquad v_k \sim \mathcal{N}(0, R),
 $$
 
-These assumptions our convenient because of the following. If our initial belief is Gaussian, then a Gaussian pushed through a linear map stays Gaussian, and a Gaussian conditioned on a linear-Gaussian observation stays Gaussian as well. So tracking the belief at every step requires only a mean and a covariance rather than an arbitrary distribution.
+These assumptions are convenient because of the following. If our initial belief is Gaussian, then a Gaussian pushed through a linear map stays Gaussian, and a Gaussian conditioned on a linear-Gaussian observation stays Gaussian as well. So tracking the belief at every step requires only a mean and a covariance rather than an arbitrary distribution.
 
 <br>
 

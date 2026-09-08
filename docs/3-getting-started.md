@@ -34,7 +34,7 @@ See the following for example usage.
 uv run maze --config configs/mapping.yaml --agent mapping
 ```
 
-Additionally, headless mode allows to simulate a game without the GUI, outputting some useful information about the run. You may also find the teleop agent useful to debug your mapping implementation.
+Additionally, headless mode allows to simulate a game without the GUI, outputting some useful information about the run. You may also find the teleop mode useful to debug your mapping implementation.
 
 ### Testing your code
 
