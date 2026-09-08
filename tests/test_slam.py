@@ -3,10 +3,10 @@ import pytest
 from maze.agents import SlamAgent
 from tests.utils import slam_results
 
-SEEDS = tuple(range(3))
+SEEDS = tuple(range(4))
 MAX_SECONDS = 300.0
 MIN_FLAGS_PER_SEED = 1
-MIN_MEAN_ACCURACY = 0.50
+MIN_MEAN_ACCURACY = 0.65
 
 
 @pytest.fixture(scope="module")

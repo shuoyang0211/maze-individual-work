@@ -11,6 +11,7 @@ def game_loop(
     agent_class: type[Any],
     max_seconds: float,
     maze_seed: int | None = None,
+    stop_on_all_flags_captured: bool = False,
 ) -> GameResult:
     """Run an agent headlessly and return its evaluation metrics.
 
@@ -19,6 +20,7 @@ def game_loop(
         `agent_class`: Agent class to evaluate.
         `max_seconds`: Simulated-time budget for the run.
         `maze_seed`: Optional fixed seed to use instead of the config's seed.
+        `stop_on_all_flags_captured`: End the run as soon as every flag is home.
 
     Returns:
         The result of the game.
@@ -27,7 +29,12 @@ def game_loop(
     if maze_seed is not None:
         config.seed = maze_seed
     agent = agent_class()
-    result = run_headless(config=config, policy=agent, max_seconds=max_seconds)
+    result = run_headless(
+        config=config,
+        policy=agent,
+        max_seconds=max_seconds,
+        stop_on_all_flags_captured=stop_on_all_flags_captured,
+    )
     if result.policy_error is not None:
         raise RuntimeError(result.policy_error)
     return result
@@ -68,7 +75,7 @@ def mapping_recalls(
 def _run_localization_trial(
     args: tuple[str | Path, type[Any], float, int],
 ) -> tuple[int, int, int]:
-    result = game_loop(*args)
+    result = game_loop(*args, stop_on_all_flags_captured=True)
     return args[-1], result.captured_flags, result.total_flags
 
 

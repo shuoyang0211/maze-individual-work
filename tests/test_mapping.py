@@ -1,10 +1,10 @@
 from maze.agents import MappingAgent
 from tests.utils import mapping_recalls
 
-SEEDS = tuple(range(3))
+SEEDS = tuple(range(4))
 MAX_SECONDS = 300.0
-MIN_FREE_RECALL = 0.60
-MIN_WALL_RECALL = 0.40
+MIN_FREE_RECALL = 0.85
+MIN_WALL_RECALL = 0.45
 
 
 def test_mapping_recall():

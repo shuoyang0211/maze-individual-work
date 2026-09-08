@@ -1,8 +1,8 @@
 from maze.agents import LocalizationAgent
 from tests.utils import flag_capture_counts
 
-SEEDS = tuple(range(3))
-MAX_SECONDS = 300.0
+SEEDS = tuple(range(6))
+MAX_SECONDS = 200.0
 
 
 def test_localization_capture_counts():
