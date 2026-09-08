@@ -182,14 +182,14 @@ class FactorGraphFilter2D:
         a small amount of floating point error even when both are correct.
 
     Parameters:
-        `acceleration_stddev`: Standard deviation of unexpected acceleration.
+        `process_noise_stddev`: Standard deviation of unexpected acceleration.
             Determines how quickly the filter weighs new measurements, by
             adding uncertainty to the belief. Larger is jumpy and responsive,
             while smaller is smooth and stubborn.
     """
 
-    def __init__(self, acceleration_stddev: float):
-        self.acceleration_stddev = acceleration_stddev
+    def __init__(self, process_noise_stddev: float):
+        self.process_noise_stddev = process_noise_stddev
 
         # Measurement and transition matrices
         self.H = np.eye(2, dtype=np.float64)
@@ -246,7 +246,7 @@ class FactorGraphFilter2D:
             _relabel(self.belief, _PREVIOUS),
             motion_factor(
                 self.F,
-                process_noise(dt, self.acceleration_stddev),
+                process_noise(dt, self.process_noise_stddev),
                 control_vector(dt, control_input),
                 _PREVIOUS,
                 _CURRENT,

@@ -2,7 +2,7 @@ import numpy as np
 
 from maze.state_estimation import FactorGraphFilter2D, KalmanFilter2D
 
-ACCELERATION_STDDEV = 100.0
+PROCESS_NOISE_STDDEV = 100.0
 INITIAL_POSITION_STDDEV = 5.0
 MEASUREMENT_STDDEV = 0.5
 DT = 0.1
@@ -19,8 +19,8 @@ def test_factor_graph_filter_matches_kalman_filter():
     and combining in the measurement factor should reproduce `update()`, so the
     two filters must agree on both the mean and the covariance at every step.
     """
-    kalman = KalmanFilter2D(acceleration_stddev=ACCELERATION_STDDEV)
-    factor_graph = FactorGraphFilter2D(acceleration_stddev=ACCELERATION_STDDEV)
+    kalman = KalmanFilter2D(PROCESS_NOISE_STDDEV=PROCESS_NOISE_STDDEV)
+    factor_graph = FactorGraphFilter2D(PROCESS_NOISE_STDDEV=PROCESS_NOISE_STDDEV)
 
     kalman.initialize((0.0, 0.0), INITIAL_POSITION_STDDEV)
     factor_graph.initialize((0.0, 0.0), INITIAL_POSITION_STDDEV)

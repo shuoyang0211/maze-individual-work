@@ -16,7 +16,7 @@ def control_vector(dt: float, control_input: Velocity) -> np.ndarray:
     return dt * np.array(control_input, dtype=np.float64).reshape(2, 1)
 
 
-def process_noise(dt: float, acceleration_stddev: float) -> np.ndarray:
+def process_noise(dt: float, process_noise_stddev: float) -> np.ndarray:
     """
     Return the process noise covariance Q for a single time step.
 
@@ -27,7 +27,7 @@ def process_noise(dt: float, acceleration_stddev: float) -> np.ndarray:
 
     Parameters:
         `dt`: Time step in seconds.
-        `acceleration_stddev`: Standard deviation of unexpected acceleration.
+        `process_noise_stddev`: Standard deviation of unexpected acceleration.
 
     Returns:
         The 2x2 process noise covariance Q.
