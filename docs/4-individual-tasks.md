@@ -21,7 +21,7 @@ Your goal is to fuse a stream of these noisy readings, together with the agent's
 
 ## Task 0: Noise model
 
-A filter carries a belief about an unknown quantity, refining that belief with each new control input and correcting it with new noisy measurements. Before we can run a filter, we need to define how much the filter (dis)trusts its own predicted motions along with its received measurements. In [`state_estimation/model.py`](../src/maze/state_estimation/model.py), you will find some helper functions used by both the Kalman filter and the factor graph. Your job is to implement the `process_noise` $Q$ and `measurement_noise` $R$.
+A filter carries a belief about an unknown quantity, advancing that belief with each new control input and correcting it with new noisy measurements. Before we can run a filter, we need to define how much the filter (dis)trusts its own predicted motions along with its received measurements. In [`state_estimation/model.py`](../src/maze/state_estimation/model.py), you will find some helper functions used by both the Kalman filter and the factor graph. Your job is to implement the `process_noise` $Q$ and `measurement_noise` $R$.
 
 > [!NOTE]
 > The observation model $H$ and the state-transition model $F$ are already defined as identity in each filter. Why is this the case? How does the state vector relate to the sensor reading? How does the state evolve over time?
