@@ -13,7 +13,7 @@
 
 <br>
 
-In the individual assignment, we will be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. You may assume that this noise is zero-mean additive Gaussian noise with a known standard deviation. Furthermore, we'll assume that the noise in each axis is uncorrelated. (In real life, this is a strong assumption to make. Why?)
+In the individual assignment, we'll be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. In particular, you may assume that this is zero-mean additive Gaussian noise with a known standard deviation, and that the noise in each axis is uncorrelated. (This happens to hold exactly in our simulator. When might it fail on a real robot?)
 
 Your goal is to fuse a stream of these noisy readings, together with the agent's own commanded motion, into an estimate good enough to navigate with. You will implement this estimator twice, once as a Kalman filter and once via elimination on a factor graph, before implementing a policy that is able to capture all the flags.
 
@@ -21,16 +21,16 @@ Your goal is to fuse a stream of these noisy readings, together with the agent's
 
 ## Task 0: Noise model
 
-A filter contains a belief about an unknown quantity which evolves with new control inputs, correcting itself each time a noisy reading arrives. We need to define how the filter's inputs relate to our quantity (the agent's position) and control input (the commanded velocity) of interest. In [state_estimation/model.py](../src/maze/state_estimation/model.py), you will find some helper functions used by both the Kalman filter and the factor graph. Your job is to implement the `process_noise` $Q$ and `measurement_noise` $R$.
+A filter carries a belief about an unknown quantity, refining that belief with each new control input and correcting it with new noisy measurements. Before we can run a filter, we need to define how much the filter (dis)trusts its own predicted motions along with its received measurements. In [`state_estimation/model.py`](../src/maze/state_estimation/model.py), you will find some helper functions used by both the Kalman filter and the factor graph. Your job is to implement the `process_noise` $Q$ and `measurement_noise` $R$.
 
 > [!NOTE]
-> The observation model $H$ and the state-transition model $F$ are already defined as identity in each filter. Why is this? How does the state vector relate to the sensor reading? How does it evolve?
+> The observation model $H$ and the state-transition model $F$ are already defined as identity in each filter. Why is this the case? How does the state vector relate to the sensor reading? How does the state evolve over time?
 
 <br>
 
 ## Task 1: Kalman filter
 
-Now, you will implement a two-dimensional Kalman filter, which recursively tracks a belief over the agent's position by alternating between two steps: predicting forward through a motion model, and correcting with a measurement model. The belief about the agent's position is given by a Gaussian, stored via its mean `self.x` and covariance `self.P`. In [`state_estimation/kalman_filter.py`](../src/maze/state_estimation/kalman_filter.py) you will implement three methods.
+Now, you will implement a two-dimensional Kalman filter, which recursively tracks a belief about the agent's position by alternating between two steps: predicting forward through a motion model, and correcting with a measurement model. The belief is given by a Gaussian, stored via its mean `self.x` and covariance `self.P`. In [`state_estimation/kalman_filter.py`](../src/maze/state_estimation/kalman_filter.py) you will implement three methods.
 
 - `initialize` sets the filter from its first reading.
 - `predict` uses the agent's previous state and control input to predict the new mean position, propagates the covariance according to the motion model, and adds process noise to account for uncertainty in the motion dynamics.
@@ -40,18 +40,14 @@ Now, you will implement a two-dimensional Kalman filter, which recursively track
 
 ## Task 1.5: Factor graph elimination
 
-Your Kalman filter's recursive update is a special case of a much more general idea: representing a probabilistic estimation problem as a *factor graph* and running *variable elimination* on it. A factor graph represents a joint distribution as a graph on *variables*, which are quantities we don't know, connected via *factors*, which are potentials that constrain those variables (e.g. a prior belief, a motion model, or a measurement model). The belief is now given by a Gaussian *potential*, specified in canonical form by the `Lambda` and `eta` satisfying
+Your Kalman filter's recursive update is a special case of a much more general idea: representing a probabilistic estimation problem as a *factor graph* and running *variable elimination* on it. A factor graph represents a joint distribution as a graph on *variables*, which are quantities we don't know, connected via *factors*, which are *potentials* that constrain those variables (e.g. a prior belief, a motion model, or a measurement model). Rather than a mean and covariance, the belief is now carried as a Gaussian potential over the variables.
 
-$$
-\operatorname{factor}(x) \propto \exp\biggl( -\frac{1}{2} x^\top \Lambda x + \eta^\top x \biggr).
-$$
-
-You'll build a two-node factor graph, over the agent's previous position `x_prev` and current position `x_curr`, using the same $F$, $Q$, $H$, and $R$ your Kalman Filter already uses. In [`state_estimation/factor_graph.py`](../src/maze/state_estimation/factor_graph.py), you will implement the following two functions.
+Your task is to build a two-node factor graph over the agent's previous position `x_prev` and current position `x_curr`, using the same $F$, $H$, $Q$, and $R$ your Kalman filter already uses. In [`state_estimation/factor_graph.py`](../src/maze/state_estimation/factor_graph.py), you will implement the following two functions.
 
 - `motion_factor` builds the joint canonical factor over the previous and current positions.
 - `eliminate` marginalizes a variable out of a joint canonical factor, returning the resulting factor over the remaining variables.
 
-Once both are implemented, eliminating `x_prev` from the combined `prior_factor` and `motion_factor` should reproduce your Kalman filter's `predict` step, and combining that result with a `measurement_factor` should reproduce your `update` step exactly. We've also exposed a `FactorGraphFilter2D`, and you can use `tests/test_state_estimation.py` to verify its equivalence with `KalmanFilter2D`.
+Once your factor graph works, eliminating `x_prev` should reproduce your Kalman filter's `predict` step exactly, and combining the result with a `measurement_factor` should reproduce your `update` step exactly. We've wired this up as a `FactorGraphFilter2D`, and you can run `tests/test_state_estimation.py` to check that it gives the same behavior as your `KalmanFilter2D`.
 
 > [!NOTE]
 > Feel free to come back to this step after Task 2, where you will implement a localization agent using your Kalman filter.
@@ -65,9 +61,7 @@ It's time to implement an agent! Your first agent in [`agents/localization_agent
 1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
 2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
 
-Your agent's `estimated_position` will be rendered for your convenience. When visualized, your estimated trajectory should closely follow the agent's true path.
-
-With access to the true underlying occupancy grid in `configs/localization.yaml`, you'll be planning a route to capture every flag in the maze, without your noisy position estimates getting in the way. You may also need to experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected changes in velocity.
+Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path. With access to the true underlying occupancy grid in `configs/localization.yaml`, your goal is to plan a route to capture every flag in the maze. You may need to experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected changes in velocity.
 
 > [!TIP]
 > There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?)

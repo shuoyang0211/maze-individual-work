@@ -10,9 +10,6 @@ class KalmanFilter2D:
 
     Parameters:
         `process_noise_stddev`: Standard deviation of unexpected acceleration.
-            Determines how quickly the filter weighs new measurements, by
-            adding uncertainty to the belief. Larger is jumpy and responsive,
-            while smaller is smooth and stubborn.
     """
 
     def __init__(self, process_noise_stddev: float):
@@ -56,7 +53,7 @@ class KalmanFilter2D:
 
     def update(self, position_measurement: Position, position_stddev: float):
         """
-        Fold a position measurement into the belief.
+        Correct the belief using a new position measurement.
 
         Parameters:
             `position_measurement`: Noisy measured position.

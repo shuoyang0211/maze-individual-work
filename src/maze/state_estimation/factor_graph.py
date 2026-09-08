@@ -1,15 +1,3 @@
-"""
-A minimal Gaussian factor graph library, with a 2D filter built on top of it.
-
-A `GaussianFactor` is a potential over one or more variables:
-
-    factor(x) ∝ exp(-1/2 x^T Lambda x + eta^T x)
-
-We use the canonical form (or information form) above because combining factors
-that share variables becomes summing their padded blocks, and marginalizing a
-variable out is a Schur complement.
-"""
-
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -115,8 +103,8 @@ def combine(factors: list[GaussianFactor]) -> GaussianFactor:
 
 def motion_factor(F: np.ndarray, Q: np.ndarray, u: np.ndarray, var_prev: str, var_curr: str) -> GaussianFactor:
     """
-    Build the joint canonical factor over (`var_prev`, `var_curr`) for the
-    conditional x_curr | x_prev ~ N(F @ x_prev + u, Q).
+    Build the joint factor over (`var_prev`, `var_curr`) for the conditional
+        x_curr | x_prev ~ N(F @ x_prev + u, Q).
 
     Note:
         The result has scope (`var_prev`, `var_curr`), so its `Lambda` is
@@ -171,21 +159,9 @@ class FactorGraphFilter2D:
     """
     Constant-velocity 2D filter exposing the same interface as `KalmanFilter2D`,
     implemented by building a small factor graph each step and eliminating it.
-    The belief is carried in canonical form rather than as `x` and `P`.
-
-    Note:
-        `F` and `H` match `KalmanFilter2D`, and Q and R come from the same
-        `model.py`, so a disagreement between the two filters points at your
-        `motion_factor` or `eliminate`, not at the model.
-        Canonical form does invert Q, which makes this the more numerically
-        delicate of the two: at very small `dt` the filters can drift apart by
-        a small amount of floating point error even when both are correct.
 
     Parameters:
         `process_noise_stddev`: Standard deviation of unexpected acceleration.
-            Determines how quickly the filter weighs new measurements, by
-            adding uncertainty to the belief. Larger is jumpy and responsive,
-            while smaller is smooth and stubborn.
     """
 
     def __init__(self, process_noise_stddev: float):
@@ -256,7 +232,7 @@ class FactorGraphFilter2D:
 
     def update(self, position_measurement: Position, position_stddev: float):
         """
-        Fold a position measurement into the belief.
+        Correct the belief using a new position measurement.
 
         Parameters:
             `position_measurement`: Noisy measured position.

@@ -36,6 +36,7 @@ In this assignment, worlds are generated according to config YAML files, which s
 In addition to the files in this `README`, we've provided a few handouts for your reference.
 
 - `comments.md` contains documentation for important classes related to the game.
+- `formulas.md` contains definitions and formulas relevant to the state estimation tasks.
 
 ### `src/`
 
