@@ -26,12 +26,12 @@ We wish to estimate an unobserved hidden state from a stream of noisy measuremen
 | $x_k$ | true (hidden) state |
 | $\hat{x}_k$ | mean of our belief about $x_k$ |
 | $P_k$ | covariance of our belief about $x_k$ |
-| $u_k$ | known control input applied over the step |
+| $u_k$ | known control input |
 | $z_k$ | observed measurement |
-| $w_k$ | process noise, i.e., how wrong $F$ and $u_k$ turn out to be |
-| $v_k$ | measurement noise, i.e., how wrong $z_k$ turns out to be |
-| $F$ | state-transition model, mapping the previous state to the current one |
-| $H$ | observation model, mapping a state to the measurement it would produce |
+| $w_k$ | process noise |
+| $v_k$ | measurement noise |
+| $F$ | state-transition model |
+| $H$ | observation model |
 | $Q$ | covariance of the process noise $w_k$ |
 | $R$ | covariance of the measurement noise $v_k$ |
 
@@ -45,7 +45,7 @@ $$
 z_k = H x_k + v_k, \qquad v_k \sim \mathcal{N}(0, R).
 $$
 
-These assumptions are convenient because of the following. If our initial belief is Gaussian, then a Gaussian pushed through a linear map stays Gaussian, and a Gaussian conditioned on a linear-Gaussian observation stays Gaussian as well. So tracking the belief at every step requires only a mean and a covariance rather than an arbitrary distribution.
+These assumptions are convenient because of the following property. If our initial belief is Gaussian, then a Gaussian pushed through a linear map stays Gaussian, and a Gaussian conditioned on a linear-Gaussian observation stays Gaussian as well. Therefore, to track the belief at every step, we only need to track the mean and covariance rather than an arbitrary distribution.
 
 <br>
 
@@ -67,30 +67,35 @@ $$
 \hat{x} \leftarrow \hat{x} + K y, \qquad P \leftarrow (I - K H) P.
 $$
 
-Here, $y$ is the *innovation*, or how wrong the prediction turned out to be; $S$ is its covariance, or how surprising an error of that size should be; and $K$ is the *Kalman gain*, which decides how far toward the measurement to move. Note that $K$ depends only on the ratio between $P$ and $R$, so the balance between trusting the prediction and trusting the measurement is determined by $Q$ and $R$.
+We interpret these objects as:
+
+- $y$ is the *innovation*, or the error from our prediction,
+- $S$ is the covariance of the innovation, which characterizes our surprise at observing $y$,
+- $K$ is the *Kalman gain*, which decides how far our belief moves towards the measurement.
+
+Note that $K$ depends only on the ratio between $P$ and $R$, so the balance between trusting the prediction and trusting the measurement is determined by $Q$ and $R$.
 
 <br>
 
 ## Factor Graphs
 
-A factor graph represents a joint distribution as a product of *factors*, each a potential over some subset of the *variables*. For Gaussian potentials, it is convenient to write each factor in *canonical form* (also called information form), parameterized by an information matrix $\Lambda$ and information vector $\eta$,
+A factor graph represents a joint distribution as a product of *factors*, each a potential over some subset of the *variables*. For Gaussian potentials, it is convenient to write each factor in *canonical form* (also called information form), parameterized by an information matrix $\Lambda$ and information vector $\eta$.
 
 $$
-\phi(x) \propto \exp\biggl(-\frac{1}{2}x^\top \Lambda x + \eta^\top x\biggr),
+\phi(x) \propto \exp\biggl(-\frac{1}{2}x^\top \Lambda x + \eta^\top x\biggr).
 $$
 
-which relates to the usual mean and covariance by $\Lambda = \Sigma^{-1}$ and $\eta = \Sigma^{-1}\mu$.
+These parameters relate to the usual mean and covariance by $\Lambda = \Sigma^{-1}$ and $\eta = \Sigma^{-1}\mu$.
 
 ### Building factors
 
 Each factor comes from one piece of the model. A Gaussian prior over a single variable, and a Gaussian likelihood treated as a factor over the state it observes, have canonical parameters
 
 $$
-\mathcal{N}(\mu, \Sigma): \quad \Lambda = \Sigma^{-1}, \qquad \eta = \Sigma^{-1}\mu,
-$$
-
-$$
-\mathcal{N}(z; Hx, R): \quad \Lambda = H^\top R^{-1} H, \qquad \eta = H^\top R^{-1} z.
+\begin{align*}
+& \mathcal{N}(\mu, \Sigma): &\qquad& \Lambda = \Sigma^{-1}, &\qquad& \eta = \Sigma^{-1}\mu, \\
+& \mathcal{N}(z; Hx, R): && \Lambda = H^\top R^{-1} H, && \eta = H^\top R^{-1} z.
+\end{align*}
 $$
 
 A linear-Gaussian *conditional* $x_\text{curr} \mid x_\text{prev} \sim \mathcal{N}(F x_\text{prev} + u,\, Q)$ is instead a factor over both variables at once, with potential
@@ -119,7 +124,7 @@ $$
 \eta = \begin{bmatrix} \eta_a \\ \eta_b \end{bmatrix}.
 $$
 
-Integrating $x_a$ out leaves a factor over the remaining variables with
+Integrating out $x_a$ leaves a factor over the remaining variables with
 
 $$
 \Lambda' = \Lambda_{bb} - \Lambda_{ba}\Lambda_{aa}^{-1}\Lambda_{ab},

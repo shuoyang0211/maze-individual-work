@@ -13,86 +13,79 @@
 
 <br>
 
-Congrats on completing the individual assignment! Now, we'll be shifting to the task of *mapping*. Like a real robot, our agent doesn't already know its environment. Instead, the environment is exposed through simulated *raycasts* that report the distance to the nearest obstacle in several directions around the agent. Your goal is to use these readings to build a two-dimensional *occupancy grid*, and then to combine that map with the localization you already wrote into a single agent that does both at once.
+Congrats on completing the individual assignment! Now, we'll be shifting to the task of *mapping*. Like a real robot, our agent doesn't already know its environment. Instead, the environment is exposed through simulated *raycasts* that probe the area around the agent for nearby obstacles. Your goal is to use these readings to build a two-dimensional *occupancy grid* of the entire maze. Lastly, you will combine this map with your localization into a SLAM agent that can do both!
 
 <br>
 
 ## Task 1: Occupancy mapping
 
-Your agents no longer get the true occupancy grid. From here on, the grid handed to `get_action` starts empty and is yours to fill in. Each cell carries a *logit* for each of four classes — free space, wall, flag, and capture point — and `probabilities()` turns those four logits into a softmax distribution over the classes.
+From now on, none of your agents will be allowed to see the true occupancy grid. Your agent must now maintain *logits* for each cell (one for each of free space, wall, flag, and capture point), which are converted into probabilities using a softmax. In [`mapping/occupancy_mapping.py`](../src/maze/mapping/occupancy_mapping.py), you will implement two helpers, which your agents will use to update the occupancy grid.
 
-In [`mapping/occupancy_mapping.py`](../src/maze/mapping/occupancy_mapping.py), you will implement two functions.
+- `update_cell` updates the logits and assignment of a single cell using one sensor observation.
+- `update_grid` takes a list of raycasts and determines the cells along them to update.
 
-- `update_cell` folds one sensor observation into one cell. Each `SensorConfidence` gives a per-class confidence, so the log-likelihood of each class is added to that class's logit, scaled by `log_odds_scale`. The cell's `assignment` is not derived from the logits automatically — you must set it yourself once the most likely class's probability crosses `assign_threshold`, and clear it when no class does.
-- `update_grid` walks a whole list of raycasts. For each ray, work out which cells it passes through, and update each of them.
-
-> [!NOTE]
-> The logits are clamped to a fixed range around zero for numerical stability. Because a softmax is unchanged by adding a constant to every logit, you can subtract the mean of the four log-likelihoods before adding them without changing what the cell believes — but it does keep the logits from all drifting to the clamp together and losing their differences. This is worth doing.
-
-The geometry of a single ray is the fiddly part. `line_between` gives you the grid cells along a segment, so you need the cell the ray starts in and the cell it ends in, which you can get from `theta` and `distance`. The cells *before* the endpoint were passed through, and are evidence of free space, so they get `path_confidence`. The endpoint cell is evidence of whatever was hit, so it gets `endpoint_confidence`.
-
-> [!IMPORTANT]
-> A ray that hits nothing reports `endpoint_type` of `Free` and a `distance` equal to its `max_distance`. That means "I saw nothing out to my range", not "there is something at exactly this distance". Only treat the last cell as a hit when `endpoint_type` is *not* `Free`.
+> [!TIP]
+> The logits are clamped to a fixed range around zero for numerical stability. Because a softmax is unchanged by adding a constant to every logit, we recommend centering the log-likelihoods before adding them, so that your logits don't drift towards the clamp. You'll also want to make use of the `mapping/utils.py`.
 
 <br>
 
 ## Task 2: A mapping agent
 
-Now put that to work. Your agent in [`agents/mapping_agent.py`](../src/maze/agents/mapping_agent.py) should call `update_grid` every tick and drive somewhere useful. In `configs/mapping.yaml` there is no position noise and there are no flags, so this task is purely about building a good map: the only thing that limits you is where you choose to go.
-
-```sh
-uv run maze --config configs/mapping.yaml --agent mapping
-```
-
-Think back to the search strategies from earlier in the course. A reasonable place to start is to steer toward the boundary between what you have mapped and what you haven't, since that is where new information is; picking *which* piece of that boundary to head for is where the interesting design choices live.
-
-`tests/test_mapping.py` scores you on two numbers over several fixed mazes: the fraction of truly-free cells you labelled free, and the fraction of true wall cells you labelled wall. You need **85% free-space recall and 45% wall recall**.
-
-> [!NOTE]
-> Those two bars are deliberately far apart. Every ray sweeps a corridor of free space, so free cells are cheap to collect and the bar mostly checks that you explored at all. Walls are harder: a ray only ever touches the *face* of a wall, never its interior, so a chunk of every wall is permanently invisible and even a perfect mapper lands well short of 100%. Don't read a wall recall of 0.6 as a bug.
-
-<br>
+Time for another agent! In [`agents/mapping_agent.py`](../src/maze/agents/mapping_agent.py), you will be implementing a *mapping* agent, which must build a representation of the environment from range-based observations. On each tick, your agent will use your helpers in Task 1 to update its beliefs about the world. Then, your task is to simply build an agent which explores the entire world and builds a good map. Note that in `configs/mapping.yaml`, there is no position noise and there are no flags, so the only thing that limits you is where you choose to go. We've also written a test in `tests/test_mapping.py` that benchmarks your agent based on the proportions of free spaces and walls it correctly maps.
 
 > [!TIP]
-> When you're getting started, it helps to drive the agent yourself and watch the grid fill in. Pass `--teleop` to take manual control: your policy still runs, so the map still updates, but your movement commands are ignored in favour of the keyboard. Press `C` in the GUI to see the occupancy grid your agent has built.
+> You can press `C` in the GUI to see your agent's occupancy grid. We also recommend using `--teleop` to observe your mapping algorithm in action. Since your policy still runs, the occupancy grid will continue to update, but the policy's movements will be ignored in favor of your keyboard inputs.
 
 <br>
 
 ## Task 3: A SLAM agent
 
-Now both halves at once. In `configs/slam.yaml` the position readings are noisy *and* the map starts empty, so your agent in [`agents/slam_agent.py`](../src/maze/agents/slam_agent.py) has to localize and map simultaneously — this is the *SLAM* problem, and it is harder than either piece alone because each half depends on the other. You are writing your map using an estimated position, so a bad estimate smears the map; and a smeared map makes the free space you plan through less trustworthy.
+You should now have two agents which are individually able to:
 
-Start by gluing together what you already have: run your `KalmanFilter2D` as in the individual assignment, feed `update_grid` your *estimated* position rather than the raw reading, and plan over the map you're building.
+1. Localize itself and capture flags given a perfect map of the environment.
+2. Map the environment given a perfect position estimate.
 
-Two behaviours are worth calling out explicitly, because they are easy to miss and both cost you points.
+Our final goal is thus: we want a single agent that can simultaneously localize and map.
+In [`agents/slam_agent.py`](../src/maze/agents/slam_agent.py), your goal is to create a SLAM agent for `configs/slam.yaml`. You should have a lot of components from both portions of the assignment that you can glue together. However, there are many new challenges that come with knowing *neither* our own position nor the environment.
 
-- **Keep mapping after the last flag is captured.** You are graded on the map as well as the flags, and the run does not end early. An agent that parks once it has captured everything will score well on flags and badly on the map.
-- **A capture point holds exactly one flag.** Once it is full it is spent, and it disappears from the grid, as does a flag you are carrying. So the entities you can still see are exactly the ones you can still use, and you don't need to track which capture points you've already filled.
+In `tests/test_slam.py`, your agent will be benchmarked by *both* how many flags it captures and its mapping accuracy. (For this reason, we also ask that your SLAM agent continues mapping even if it has collected all flags.)
+As a group, you're also invited to further improve both the localization and mapping parts of the code, or to make new improvements for the simultaneous agent. These may also improve your score on the Gradescope leaderboard, but no specific additions are required. We've also included a list of potential starting points.
 
-`tests/test_slam.py` asks for **at least one flag captured on every maze, and a mean mapping accuracy of at least 65%**. Capturing *both* flags every time is not required: a flag can sit in a corner of the maze you never reach within the time budget, so how many you find depends partly on where exploration happens to take you. Getting both consistently is a good target for the leaderboard rather than a requirement to pass.
-
-<br>
-
-## Going further
-
-Our SLAM implementation is far from perfect, and you're invited to improve either half. None of this is required, but it can improve your standing on the Gradescope leaderboard. Some starting points:
-
-- The localization code ignores the raycasts entirely. Once you have a decent map, the ranges themselves say a lot about where you are — a reading that only makes sense from one spot in a corridor is a measurement you're currently throwing away. And we only ever explored Kalman filters; how would a particle filter do here?
-- You may notice cells that were confidently walls drifting back to free as the agent moves. That is expected — the grid is a discrete approximation of continuous rays, so a ray sometimes slips through a cell that contains a wall without hitting it there. You might change how logits update once a class is already very likely. You might also exploit the fact that walls in this maze tend to run in long straight lines.
-- Exploration is where the time budget actually goes. Cruising well below `max_speed` costs you coverage, and coverage is what decides whether you ever find the second flag.
+> <details><summary><b>Suggestions</b></summary>
+>
+> - **Detect poor estimates.** How do you know when your position estimate is wrong? How does that change your grid update, or your policy?
+>
+> - **Use the filter covariance.** How might you use your Kalman filter covariance matrix, in addition to its mean?
+>
+> - **Implement scan matching.** Can you use raycasts to also help you estimate your position?
+>
+> - **Try alternative filters.** How would alternative localization methods (e.g. particle filters) perform?
+>
+> - **Modify the logit update.** How might you change the logit update, so that cells you correctly detect as walls aren't being reassigned as free spaces?
+>
+> - **Utilize the maze structure.** Can you leverage the fact that walls in our maze tend to extend in a given direction for a long time?
+>
+> </details>
 
 <br>
 
 ## Written task
 
-In a short writeup, describe what you did and tried. This is a chance to reflect on your approach and design choices, not a formal report — bullet points are fine. Please address both of the following.
+In the group portions of these assignments, we hope you can engage with the course content more deeply while also learning from your peers. Therefore, we ask that you submit a short reflection (about 1–2 pages, in any format you like) detailing what you tried, what ideas worked well, and what didn't go as planned. We're more interested in the process than the result! For this assignment specifically, we ask that your write-up also answers the following questions:
 
-- **What you implemented.** Briefly summarize the approach you took for mapping, for localization, and for combining them into SLAM.
-- **What you tried that didn't work.** Design choices you explored and abandoned, bugs that took a while to track down, or parameter values that gave bad results, and why you think they did.
+1. How did your SLAM agent perform at first? Were there any new problems that didn't appear when you only had to do localization or mapping alone?
 
-You're welcome to include plots, screenshots, or short code snippets that illustrate what you're describing. Submit the writeup as a Markdown file alongside your code.
+2. Briefly summarize the approach you took for mapping, for localization, and for combining them into SLAM. How did you apply the ideas from class? Were there any novel ideas that you found successful?
 
-Feel free to post on Ed or stop by office hours if you have any questions or want to brainstorm ideas!
+3. What ideas didn't work as you expected, and why do you think this was the case? Were there any catastrophic failures?
+
+4. Can you describe your agent's final policy at a high level? What choices does it make to handle noisy measurements?
+
+5. Did you use AI to aid in the development of your agent? If so, explain how you used it and summarize its contributions in your report. We also ask that you provide transcripts of all your conversations in a `prompts/` directory.
+
+6. Provide a short summary of each team member's contributions.
+
+Feel free to add any other information you would like us to know. Pictures, code snippets, and comments are highly appreciated. Before submitting, you can include your final report as a `writeup.pdf` file at the root of this repository.
 
 <br>
 

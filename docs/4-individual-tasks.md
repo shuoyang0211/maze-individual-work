@@ -13,7 +13,7 @@
 
 <br>
 
-In the individual assignment, we'll be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. In particular, you may assume that this is zero-mean additive Gaussian noise with a known standard deviation, and that the noise in each axis is uncorrelated. (This happens to hold exactly in our simulator. When might it fail on a real robot?)
+In the individual assignment, we'll be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. In particular, you may assume that this is zero-mean additive Gaussian noise with a known standard deviation, and that the noise in each axis is uncorrelated. (This is a strong assumption? Why might it fail for a real robot?)
 
 Your goal is to fuse a stream of these noisy readings, together with the agent's own commanded motion, into an estimate good enough to navigate with. You will implement this estimator twice, once as a Kalman filter and once via elimination on a factor graph, before implementing a policy that is able to capture all the flags.
 
@@ -21,7 +21,7 @@ Your goal is to fuse a stream of these noisy readings, together with the agent's
 
 ## Task 0: Noise model
 
-A filter carries a belief about an unknown quantity, advancing that belief with each new control input and correcting it with new noisy measurements. Our game is set up as a linear-Gaussian system (see `formulas.md`), where the unknown quantity is the agent's position, the control input is the displacement from the commanded velocity, and each measurement is a noisy observation of the agent's position.
+In a filter, we maintain a belief about an unknown quantity, which is refined with new control inputs and corrected with new noisy measurements. Our game is set up as a linear-Gaussian system (see `formulas.md`), where the unknown quantity is the agent's position, the control input is the displacement from the commanded velocity, and each measurement is a noisy observation of the agent's position.
 
 Before we can run a filter, we need to define how much the filter (dis)trusts its own predicted motions along with its received measurements. In [`state_estimation/model.py`](../src/maze/state_estimation/model.py), you will find some helper functions used by both the Kalman filter and the factor graph. Your job is to implement the `process_noise` $Q$ and `measurement_noise` $R$.
 
@@ -39,7 +39,7 @@ Now, you will implement a two-dimensional Kalman filter, which recursively track
 - `update` takes a new noisy measurement, computes the Kalman gain to determine how much to trust the new measurement, and refines the estimated state and covariance.
 
 > [!TIP]
-> If you want to see your Kalman filter in action before implementing a factor graph, you might want to get a start on Task 3 instead.
+> If you want to see your Kalman filter in action, you might like to work on Task 3 before your factor graph.
 
 <br>
 
@@ -58,15 +58,15 @@ Once your factor graph works, eliminating `x_prev` should reproduce your Kalman 
 
 ## Task 3: A localization agent
 
-It's time to implement an agent! Your first agent is [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py). Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle. Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path.
+It's time to implement your first agent! In [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py), you will be implementing a *localization* agent, which must determine its position in the world based on imperfect motion and sensor data. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle.
 
 1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
 2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
 
-Note that your agent has access to the true occupancy grid in `configs/localization.yaml`. Your goal is now to plan a route to capture every flag in the maze. You can experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration (e.g., due to walls). Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.
+Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path. Your goal is now to plan a route to capture every flag in the maze. In particular, you should use `configs/localization.yaml`, which gives your agent access to the true occupancy grid. We've also written a test in `tests/test_localization.py` that benchmarks your agent based on how many flags it collects.
 
 > [!TIP]
-> There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?)
+> There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?) You can also experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration (e.g., due to walls). Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.
 
 <br>
 

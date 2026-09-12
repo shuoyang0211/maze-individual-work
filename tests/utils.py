@@ -86,7 +86,7 @@ def flag_capture_counts(
     seeds: Sequence[int],
     max_workers: int = 8,
 ) -> list[tuple[int, int, int]]:
-    """Return ``(seed, captured, total)`` flag counts for each fixed seed."""
+    """Return `(seed, captured, total)` flag counts for each fixed seed."""
     if not seeds:
         raise ValueError("seeds must not be empty")
 
@@ -109,7 +109,7 @@ def slam_results(
     seeds: Sequence[int],
     max_workers: int = 8,
 ) -> list[tuple[int, int, int, float]]:
-    """Return ``(seed, captured, total, mapping_accuracy)`` for each fixed seed."""
+    """Return `(seed, captured, total, mapping_accuracy)` for each fixed seed."""
     if not seeds:
         raise ValueError("seeds must not be empty")
 
