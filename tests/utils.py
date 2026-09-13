@@ -97,9 +97,15 @@ def flag_capture_counts(
 
 def _run_slam_trial(
     args: tuple[str | Path, type[Any], float, int],
-) -> tuple[int, int, int, float]:
+) -> tuple[int, int, int, float, float]:
     result = game_loop(*args)
-    return args[-1], result.captured_flags, result.total_flags, result.mapping_accuracy
+    return (
+        args[-1],
+        result.captured_flags,
+        result.total_flags,
+        result.free_recall,
+        result.wall_recall,
+    )
 
 
 def slam_results(
@@ -108,8 +114,8 @@ def slam_results(
     max_seconds: float,
     seeds: Sequence[int],
     max_workers: int = 8,
-) -> list[tuple[int, int, int, float]]:
-    """Return `(seed, captured, total, mapping_accuracy)` for each fixed seed."""
+) -> list[tuple[int, int, int, float, float]]:
+    """Return `(seed, captured, total, free_recall, wall_recall)` for each fixed seed."""
     if not seeds:
         raise ValueError("seeds must not be empty")
 

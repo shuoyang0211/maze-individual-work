@@ -39,7 +39,7 @@ Now, you will implement a two-dimensional Kalman filter, which recursively track
 - `update` takes a new noisy measurement, computes the Kalman gain to determine how much to trust the new measurement, and refines the estimated state and covariance.
 
 > [!TIP]
-> If you want to see your Kalman filter in action, you might like to work on Task 3 before your factor graph.
+> If you want to see your Kalman filter in action, we recommend getting a basic localization agent moving in Task 3 first. You can come back to the factor graph at any point.
 
 <br>
 
@@ -58,12 +58,17 @@ Once your factor graph works, eliminating `x_prev` should reproduce your Kalman 
 
 ## Task 3: A localization agent
 
-It's time to implement your first agent! In [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py), you will be implementing a *localization* agent, which must determine its position in the world based on imperfect motion and sensor data. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` through the following cycle.
+It's time to implement your first agent! In [`agents/localization_agent.py`](../src/maze/agents/localization_agent.py), you will be implementing a *localization* agent, which must determine its position in the world based on imperfect motion and sensor data. Each time `get_action` is called, you will need to drive your `KalmanFilter2D` (or `FactorGraphFilter2D`) through the following cycle.
 
 1. On the first tick, `initialize` from `game_state.agent.position` and `game_state.agent.position_stddev`.
 2. On every tick after that, `predict` with `dt` and the velocity you commanded on the *previous* tick, then `update` with the current reading and its standard deviation.
 
-Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path. Your goal is now to plan a route to capture every flag in the maze. In particular, you should use `configs/localization.yaml`, which gives your agent access to the true occupancy grid. We've also written a test in `tests/test_localization.py` that benchmarks your agent based on how many flags it collects.
+Your agent can then report the filter's mean as its `estimated_position`, which will render as a translucent ghost that should closely follow the agent's true path.
+
+> [!NOTE]
+> Your `predict` step assumes the agent really moved by the velocity it commanded. What happens to that assumption when a wall gets in the way?
+
+Your goal is now to plan a route to capture every flag in the maze. In particular, you should use `configs/localization.yaml`, which gives your agent information about all walls, flags, and capture points by passing the true occupancy grid. (Note that flags are removed from the grid when held, and both flags and capture points are removed when captured.) We've written a test in `tests/test_localization.py` that benchmarks your agent based on how many flags it collects.
 
 > [!TIP]
 > There are many approaches you can take to plan this policy! Think back to the first assignment. (Are you really planning in continuous space?) You can also experiment with the filter's `process_noise_stddev`, which controls how sensitive your filter is to unexpected acceleration (e.g., due to walls). Since $Q$ is proportional to `dt ** 4`, you might find very large values more useful.

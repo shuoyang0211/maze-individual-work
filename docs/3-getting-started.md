@@ -31,10 +31,8 @@ maze [-h] [--config CONFIG] [--agent AGENT_ID]
 See the following for example usage.
 
 ```sh
-uv run maze --config configs/mapping.yaml --agent mapping
+uv run maze --config configs/localization.yaml --agent localization
 ```
-
-Additionally, headless mode allows to simulate a game without the GUI, outputting some useful information about the run. You may also find the teleop mode useful to debug your mapping implementation.
 
 ### Testing your code
 
@@ -43,6 +41,9 @@ We use [`pytest`](https://docs.pytest.org/en/stable/) to write and run tests for
 ```sh
 uv run pytest
 ```
+
+> [!NOTE]
+> The game gives up on a policy that doesn't return within `agent.policy_timeout_seconds`, which defaults to 60 seconds. If you want to sit on a breakpoint for longer than that, set it to `0` in your config to wait forever.
 
 ### Debugging tips
 

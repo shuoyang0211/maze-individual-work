@@ -34,7 +34,7 @@ From now on, none of your agents will be allowed to see the true occupancy grid.
 Time for another agent! In [`agents/mapping_agent.py`](../src/maze/agents/mapping_agent.py), you will be implementing a *mapping* agent, which must build a representation of the environment from range-based observations. On each tick, your agent will use your helpers in Task 1 to update its beliefs about the world. Then, your task is to simply build an agent which explores the entire world and builds a good map. Note that in `configs/mapping.yaml`, there is no position noise and there are no flags, so the only thing that limits you is where you choose to go. We've also written a test in `tests/test_mapping.py` that benchmarks your agent based on the proportions of free spaces and walls it correctly maps.
 
 > [!TIP]
-> You can press `C` in the GUI to see your agent's occupancy grid. We also recommend using `--teleop` to observe your mapping algorithm in action. Since your policy still runs, the occupancy grid will continue to update, but the policy's movements will be ignored in favor of your keyboard inputs.
+> You can press `C` to view your agent's occupancy grid, and `T` to see the true grid. We also recommend using `--teleop` to observe your mapping algorithm in action. Since your policy still runs, the occupancy grid will continue to update, but the policy's movements will be ignored in favor of your keyboard inputs.
 
 <br>
 
@@ -45,11 +45,9 @@ You should now have two agents which are individually able to:
 1. Localize itself and capture flags given a perfect map of the environment.
 2. Map the environment given a perfect position estimate.
 
-Our final goal is thus: we want a single agent that can simultaneously localize and map.
-In [`agents/slam_agent.py`](../src/maze/agents/slam_agent.py), your goal is to create a SLAM agent for `configs/slam.yaml`. You should have a lot of components from both portions of the assignment that you can glue together. However, there are many new challenges that come with knowing *neither* our own position nor the environment.
+Our final goal is thus: we want a single agent that can simultaneously localize and map. In [`agents/slam_agent.py`](../src/maze/agents/slam_agent.py), your goal is to create a SLAM agent for `configs/slam.yaml`. You should have a lot of components from both portions of the assignment that you can glue together. However, there are many new challenges that come with knowing *neither* our own position nor the environment.
 
-In `tests/test_slam.py`, your agent will be benchmarked by *both* how many flags it captures and its mapping accuracy. (For this reason, we also ask that your SLAM agent continues mapping even if it has collected all flags.)
-As a group, you're also invited to further improve both the localization and mapping parts of the code, or to make new improvements for the simultaneous agent. These may also improve your score on the Gradescope leaderboard, but no specific additions are required. We've also included a list of potential starting points.
+In `tests/test_slam.py`, your agent will be benchmarked by *both* how many flags it captures and how much of the map it gets right. (For this reason, we also ask that your SLAM agent continues mapping even if it has collected all flags.) As a group, you're also invited to further improve both the localization and mapping parts of the code, or to make new improvements for the simultaneous agent. These may improve your score on the Gradescope leaderboard, but no specific additions are required. We've included a list of potential starting points.
 
 > <details><summary><b>Suggestions</b></summary>
 >

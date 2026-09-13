@@ -40,12 +40,11 @@ In addition to the files in this `README`, we've provided a few handouts for you
 
 ### `src/`
 
-All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping in `agents/`.
-In the individual assignment, you'll also be working on two probabilistic models in `state_estimation/`, and in the group assignment, you'll be implementing a few helpers in `occupancy_mapping/`. We encourage you to create any other files, functions, and methods you need!
+All code that you will be responsible for belongs here. In particular, you will be implementing various robotic policies for localization and mapping in `agents/`. In the individual assignment, you'll also be working on two probabilistic models in `state_estimation/`, and in the group assignment, you'll be implementing a few helpers in `mapping/`. We encourage you to create any other files, functions, and methods you need!
 
 ### `tests/`
 
-We've provided a few tests which will benchmark the performance of your localization and mapping agents. You can play around with the number of runs and the maximum allotted time, which may be useful if your agents have non-deterministic behavior. Note that these tests may still take a few minutes. For the individual assignment, we've also included a test which checks the equivalence of your Kalman filter and factor graph elimination implementations.
+We've provided a few tests which will benchmark the performance of your localization and mapping agents. You can play around with the number of runs and the maximum allotted time, which may be useful if your agents have non-deterministic behavior. Note that these tests may still take a few minutes. We've also included a test which checks the equivalence of your Kalman filter and factor graph elimination implementations.
 
 <br>
 

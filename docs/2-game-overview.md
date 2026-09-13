@@ -55,7 +55,7 @@ More precisely, the game runs at 60 simulation ticks per second. At each policy 
 - `Action.PickupFlag()` tries to pick up a flag, holding at most one flag at a time.
 - `Action.DropFlag()` drops the flag the agent is holding.
 
-The agent must be within the interaction radius of a flag to pick it up, and likewise a flag must be dropped within the interaction radius of a capture point for the capture to occur. Your agent's goal is now to explore the world around it, to localize itself, and to capture all the flags.
+The agent must be within the pickup radius of a flag to pick it up, and likewise a flag must be dropped within the capture radius of a capture point for the capture to occur. Your agent's goal is now to explore the world around it, to localize itself, and to capture all the flags.
 
 <figure style="text-align: center;">
     <img src="./assets/capturing_the_flag.webp" alt="The agent picks up a flag and drops it at a capture point." width="600">
