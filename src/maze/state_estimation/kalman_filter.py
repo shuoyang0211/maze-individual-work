@@ -1,7 +1,11 @@
 import numpy as np
 from maze_core import Position, Velocity
 
-from maze.state_estimation.model import control_vector, measurement_noise, process_noise
+from maze.state_estimation.model import (
+    control_vector,
+    measurement_noise,
+    process_noise,
+)
 
 
 class KalmanFilter2D:

@@ -1,4 +1,11 @@
-from maze_core import Action, GameState, OccupancyGrid, Position
+from maze_core import (
+    Action,
+    EntityType,
+    GameState,
+    OccupancyGrid,
+    Position,
+    Velocity,
+)
 
 from maze.state_estimation import KalmanFilter2D
 
