@@ -25,7 +25,7 @@ From now on, none of your agents will be allowed to see the true occupancy grid.
 - `update_grid` takes a list of raycasts and determines the cells along them to update.
 
 > [!TIP]
-> The logits are clamped to a fixed range around zero for numerical stability. Because a softmax is unchanged by adding a constant to every logit, we recommend centering the log-likelihoods before adding them, so that your logits don't drift towards the clamp. You'll also want to make use of the `mapping/utils.py`.
+> The logits are clamped to a fixed range around zero for numerical stability. Because a softmax is unchanged by adding a constant to every logit, we recommend centering the log-likelihoods before adding them, so that your logits don't drift towards the clamp. You'll also want to make use of `mapping/utils.py`.
 
 <br>
 

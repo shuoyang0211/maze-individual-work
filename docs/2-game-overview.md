@@ -13,7 +13,7 @@
 
 <br>
 
-In this game, you'll be piloting an agent to capture flags in a *continuous* maze. Unlike in your other assignments this semester, your agent will not have access to perfect information about the environment. Instead, it must *perceive* its surroundings through noisy sensor data. Each maze is generated according to a YAML in `configs/`, which specifies the agent's attributes, sensor parameters, and knobs for procedural maze generation. You can check out `configs/default.yaml` to get a sense for how mazes are generated. Note that the default policy also disables the agent, allowing you to drive the agent yourself.
+In this game, you'll be piloting an agent to capture flags in a *continuous* maze. Unlike in your other assignments this semester, your agent will not have access to perfect information about the environment. Instead, it must *perceive* its surroundings through noisy sensor data. Each maze is generated according to a YAML in `configs/`, which specifies the agent's attributes, sensor parameters, and knobs for procedural maze generation. You can check out `configs/default.yaml` to get a sense for how mazes are generated. Note that the default config also disables the policy, allowing you to drive the agent yourself.
 
 <br>
 
@@ -47,7 +47,7 @@ Your agent will not necessarily know its exact location, nor will it have fully 
 
 ## Capturing the Flag
 
-To control the agent, you will provide a **policy**, which periodically observes the environment and returns an action. Like an actual robot, the robot's observations and policy are tied to a discrete clock, set by `agent.policy_hz`, while the actual environment runs continuously.
+To control the agent, you will provide a **policy**, which periodically observes the environment and returns an action. Like an actual robot, the robot's observations and policy are tied to a discrete simulation clock, set by `agent.policy_hz`, while the actual environment runs continuously.
 
 More precisely, the game runs at 60 simulation ticks per second. At each policy call, the agent receives the current `GameState` and the simulated time `dt` since the previous one. (Note that the GUI may render more slowly since the game has to wait for the policy, which might take longer than 60 frames per second.) Then, it must return one of the following actions.
 

@@ -73,7 +73,7 @@ We interpret these objects as:
 - $S$ is the covariance of the innovation, which characterizes our surprise at observing $y$,
 - $K$ is the *Kalman gain*, which decides how far our belief moves towards the measurement.
 
-Note that $K$ depends only on the ratio between $P$ and $R$, so the balance between trusting the prediction and trusting the measurement is determined by $Q$ and $R$.
+Note that $K$ depends on how $P$ compares to $R$, so the balance between trusting the prediction and trusting the measurement is determined by $Q$ and $R$.
 
 <br>
 

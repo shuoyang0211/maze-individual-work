@@ -13,7 +13,7 @@
 
 <br>
 
-In the individual assignment, we'll be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. In particular, you may assume that this is zero-mean additive Gaussian noise with a known standard deviation, and that the noise in each axis is uncorrelated. (This is a strong assumption? Why might it fail for a real robot?)
+In the individual assignment, we'll be looking at the task of *localization*. (We'll leave *mapping* for later.) Like a real robot, our agent only sees a noisy reading of its own position. In particular, you may assume that this is zero-mean additive Gaussian noise with a known standard deviation, and that the noise in each axis is uncorrelated. (This is a strong assumption. Why might it fail for a real robot?)
 
 Your goal is to fuse a stream of these noisy readings, together with the agent's own commanded motion, into an estimate good enough to navigate with. You will implement this estimator twice, once as a Kalman filter and once via elimination on a factor graph, before implementing a policy that is able to capture all the flags.
 
