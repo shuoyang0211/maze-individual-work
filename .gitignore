@@ -1,10 +1,12 @@
-# Python-generated files
+# Python bytecode and build artifacts
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.egg-info/
 build/
 dist/
-wheels/
-*.egg-info
 
 # Virtual environments
-.venv
+.venv/
+
+# Test cache
+.pytest_cache/
