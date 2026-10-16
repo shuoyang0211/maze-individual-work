@@ -32,7 +32,14 @@ def process_noise(dt: float, process_noise_stddev: float) -> np.ndarray:
     Returns:
         The 2x2 process noise covariance Q.
     """
-    raise NotImplementedError
+    # 根据注释提示，未知加速度导致的位移方差计算公式为：(stddev^2) * (dt^4 / 4)
+    variance = (process_noise_stddev ** 2) * (dt ** 4) / 4.0
+    
+    # 两个轴的误差独立，所以生成一个对角线上均为 variance 的 2x2 矩阵
+    return np.array([
+        [variance, 0.0],
+        [0.0,      variance]
+    ], dtype=np.float64)
 
 
 def measurement_noise(position_stddev: float) -> np.ndarray:
@@ -48,4 +55,11 @@ def measurement_noise(position_stddev: float) -> np.ndarray:
     Returns:
         The 2x2 measurement noise covariance R.
     """
-    raise NotImplementedError
+    # 测量的方差即为标准差的平方
+    variance = position_stddev ** 2
+    
+    # x 轴和 y 轴误差独立，生成对角阵
+    return np.array([
+        [variance, 0.0],
+        [0.0,      variance]
+    ], dtype=np.float64)

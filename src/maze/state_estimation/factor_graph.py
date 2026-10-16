@@ -125,7 +125,36 @@ def motion_factor(F: np.ndarray, Q: np.ndarray, u: np.ndarray, var_prev: str, va
     Returns:
         A factor over both variables.
     """
-    raise NotImplementedError
+    # 过程噪声协方差的逆矩阵作为权重
+    Q_inv = np.linalg.inv(Q)
+    
+    # 状态转移方程为: x_curr - F * x_prev = u + noise
+    # 我们构建联合状态向量 [x_prev, x_curr]^T
+    # 对应的系数矩阵为 [-F, I]
+    # 根据规范形式推导： Lambda = A^T * Q_inv * A, eta = A^T * Q_inv * u
+    
+    # 计算 Lambda 分块
+    L_11 = F.T @ Q_inv @ F      # 对角块 (prev, prev)
+    L_12 = -F.T @ Q_inv         # 交叉块 (prev, curr)
+    L_21 = -Q_inv @ F           # 交叉块 (curr, prev)
+    L_22 = Q_inv                # 对角块 (curr, curr)
+    
+    # 计算 eta 分块
+    eta_1 = -F.T @ Q_inv @ u    # prev 对应部分
+    eta_2 = Q_inv @ u           # curr 对应部分
+    
+    # 拼接成完整的 Lambda (4x4) 和 eta (4x1)
+    Lambda = np.block([
+        [L_11, L_12],
+        [L_21, L_22]
+    ])
+    eta = np.block([
+        [eta_1],
+        [eta_2]
+    ])
+    
+    dim = F.shape[1]
+    return GaussianFactor(scope=(var_prev, var_curr), dim=dim, Lambda=Lambda, eta=eta)
 
 
 def eliminate(joint: GaussianFactor, var: str) -> GaussianFactor:
@@ -143,7 +172,31 @@ def eliminate(joint: GaussianFactor, var: str) -> GaussianFactor:
     Returns:
         A factor over `joint.scope` without `var`.
     """
-    raise NotImplementedError
+    # 找出除了要消除的变量外，还剩下哪些变量 (即"幸存变量" a)
+    surviving_vars = tuple(v for v in joint.scope if v != var)
+    
+    # 获取索引
+    idx_a = joint.indices_for(*surviving_vars)  # 幸存变量索引
+    idx_b = joint.indices_for(var)              # 被消除变量索引
+    
+    # 将信息矩阵 Lambda 拆分为四个块
+    L_aa = joint.Lambda[np.ix_(idx_a, idx_a)]
+    L_ab = joint.Lambda[np.ix_(idx_a, idx_b)]
+    L_ba = joint.Lambda[np.ix_(idx_b, idx_a)]
+    L_bb = joint.Lambda[np.ix_(idx_b, idx_b)]
+    
+    # 将信息向量 eta 拆分为两个块
+    eta_a = joint.eta[idx_a]
+    eta_b = joint.eta[idx_b]
+    
+    # 预计算被消除变量矩阵块的逆
+    L_bb_inv = np.linalg.inv(L_bb)
+    
+    # 使用舒尔补公式 (Schur Complement) 进行边缘化消除
+    Lambda_new = L_aa - L_ab @ L_bb_inv @ L_ba
+    eta_new = eta_a - L_ab @ L_bb_inv @ eta_b
+    
+    return GaussianFactor(scope=surviving_vars, dim=joint.dim, Lambda=Lambda_new, eta=eta_new)
 
 
 _PREVIOUS = "x_prev"
